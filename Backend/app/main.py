@@ -9,6 +9,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.ai.evaluation.router import router as ai_evaluation_router
+from app.ai.router import router as ai_router
+from app.parent_dashboard.router import router as parent_dashboard_router
+from app.content_ingestion.router import router as content_ingestion_router
+from app.reports.router import router as reports_router
 from app.api.routes.health import router as health_router
 from app.auth.router import router as auth_router
 from app.common.context import request_id_var
@@ -128,6 +133,11 @@ app.include_router(progress_router)
 app.include_router(mastery_router)
 app.include_router(pacing_router)
 app.include_router(teaching_sessions_router)
+app.include_router(ai_router)
+app.include_router(ai_evaluation_router)
+app.include_router(parent_dashboard_router)
+app.include_router(content_ingestion_router)
+app.include_router(reports_router)
 
 
 # ---------------------------------------------------------------------------

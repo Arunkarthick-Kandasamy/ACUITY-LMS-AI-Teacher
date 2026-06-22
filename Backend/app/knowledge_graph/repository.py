@@ -20,6 +20,11 @@ class KnowledgeNodeRepository(Repository[KnowledgeNode]):
         result = await self.session.execute(stmt)
         return result.unique().scalar_one_or_none()
 
+    async def find_by_label(self, label: str) -> KnowledgeNode | None:
+        stmt = select(KnowledgeNode).where(KnowledgeNode.label == label)
+        result = await self.session.execute(stmt)
+        return result.unique().scalar_one_or_none()
+
 
 class KnowledgeEdgeRepository(Repository[KnowledgeEdge]):
     def __init__(self, session) -> None:  # noqa: ANN001

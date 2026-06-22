@@ -46,6 +46,7 @@ class StudentProfile(UUIDMixin, TimestampMixin, Base):
     mastery_records: Mapped[list[MasteryRecord]] = relationship(back_populates="student")
     misconceptions: Mapped[list[Misconception]] = relationship(back_populates="student")
     memories: Mapped[list[StudentMemory]] = relationship(back_populates="student")
+    memory_entries: Mapped[list[MemoryEntry]] = relationship(back_populates="student")
     reports: Mapped[list[Report]] = relationship(back_populates="student")
 
 

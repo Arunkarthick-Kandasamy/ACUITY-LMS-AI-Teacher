@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     refresh_token_expire_days: Annotated[int, Field(default=7)]
     password_reset_token_expire_hours: Annotated[int, Field(default=1)]
 
+    # -----------------------------------------------------------------------
+    # AI
+    # -----------------------------------------------------------------------
+    gemini_api_key: Annotated[str, Field(default="")]
+    gemini_model: Annotated[str, Field(default="gemini-1.5-pro")]
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, v: str) -> str:
