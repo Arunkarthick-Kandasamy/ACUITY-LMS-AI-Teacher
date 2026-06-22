@@ -1,0 +1,4 @@
+# Logs
+/uvicorn_err.log
+/uvicorn_out.log
+*.log

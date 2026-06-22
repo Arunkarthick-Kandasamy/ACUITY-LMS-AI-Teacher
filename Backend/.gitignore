@@ -35,6 +35,8 @@ Thumbs.db
 # Logs
 *.log
 logs/
+/uvicorn_err.log
+/uvicorn_out.log
 
 # Testing
 .coverage
