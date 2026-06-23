@@ -1,19 +1,26 @@
 from __future__ import annotations
 
-from sqlalchemy import DateTime, text
+import uuid
+
+from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
+
+from app.config import settings
 
 
 class Base(DeclarativeBase):
     pass
 
 
+def _generate_uuid() -> str:
+    return str(uuid.uuid4())
+
+
 class UUIDMixin:
     id: Mapped[str] = mapped_column(
         primary_key=True,
-        default=None,
-        server_default=text("gen_random_uuid()"),
+        default=_generate_uuid,
     )
 
 

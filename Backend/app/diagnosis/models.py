@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
@@ -115,7 +115,7 @@ class Example(UUIDMixin, TimestampMixin, Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     explanation: Mapped[str | None] = mapped_column(Text)
     order_index: Mapped[int] = mapped_column(nullable=False)
-    tags: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    tags: Mapped[list[str] | None] = mapped_column(JSONB)
 
     concept: Mapped[Concept] = relationship(back_populates="examples")
 
@@ -130,7 +130,7 @@ class Exercise(UUIDMixin, TimestampMixin, Base):
     correct_answer: Mapped[str] = mapped_column(Text, nullable=False)
     difficulty: Mapped[float] = mapped_column(Float, default=0.5, nullable=False, index=True)
     order_index: Mapped[int] = mapped_column(nullable=False)
-    tags: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    tags: Mapped[list[str] | None] = mapped_column(JSONB)
 
     concept: Mapped[Concept] = relationship(back_populates="exercises")
     attempts: Mapped[list[Attempt]] = relationship(back_populates="exercise")

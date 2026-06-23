@@ -58,8 +58,10 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
+        if v.startswith("sqlite+aiosqlite://"):
+            return v
         if not v.startswith("postgresql+asyncpg://"):
-            msg = "DATABASE_URL must use asyncpg driver (postgresql+asyncpg://)"
+            msg = "DATABASE_URL must use asyncpg (postgresql+asyncpg://) or aiosqlite (sqlite+aiosqlite://)"
             raise ValueError(msg)
         return v
 

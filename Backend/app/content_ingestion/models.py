@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
