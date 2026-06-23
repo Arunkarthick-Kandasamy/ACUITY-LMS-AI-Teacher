@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GraduationCap, ArrowRight, BookOpen, Sparkles } from 'lucide-react'
+import { authStore } from '@/store/authStore'
+import { enroll } from '@/services/enrollment'
+import { getCourses } from '@/services/curriculum'
 
 const grades = ['6th', '7th', '8th', '9th', '10th', '11th', '12th']
 const subjects = ['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science']
@@ -12,6 +15,7 @@ export function StudentOnboarding() {
   const [grade, setGrade] = useState('')
   const [subject, setSubject] = useState('')
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests(prev =>
@@ -19,7 +23,15 @@ export function StudentOnboarding() {
     )
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    setLoading(true)
+    try {
+      const res = await getCourses({ is_published: true, per_page: 1 })
+      const course = res.data?.[0]
+      if (course) {
+        await enroll(course.course_id)
+      }
+    } catch {}
     navigate('/student/dashboard')
   }
 
@@ -36,7 +48,6 @@ export function StudentOnboarding() {
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          {/* Step indicator */}
           <div className="flex gap-2 mb-6">
             {[1, 2, 3].map(s => (
               <div key={s} className={`flex-1 h-1.5 rounded-full ${s <= step ? 'bg-navy-800' : 'bg-slate-200'}`} />
@@ -135,8 +146,8 @@ export function StudentOnboarding() {
                 <button onClick={() => setStep(2)} className="btn-secondary flex-1">
                   Back
                 </button>
-                <button onClick={handleComplete} className="btn-primary flex-1">
-                  Start Learning <ArrowRight className="w-4 h-4 ml-1" />
+                <button onClick={handleComplete} disabled={loading} className="btn-primary flex-1 disabled:opacity-50">
+                  {loading ? 'Setting up...' : 'Start Learning'} <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
               </div>
             </div>

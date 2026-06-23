@@ -1,33 +1,49 @@
-export type UserRole = 'student' | 'parent' | 'admin' | null
+import { getAccessToken, clearTokens } from '@/services/api'
+import * as authService from '@/services/auth'
+import type { User, UserRole } from '@/services/types'
 
-interface User {
-  id: string
-  name: string
-  email: string
-  role: Exclude<UserRole, null>
-  avatar?: string
-}
+export type { UserRole } from '@/services/types'
+export type { User }
 
-// Simple in-memory auth store (replace with real auth later)
 let currentUser: User | null = null
 let listeners: Array<() => void> = []
+
+function notify() {
+  listeners.forEach(l => l())
+}
 
 const authStore = {
   get user() { return currentUser },
 
-  login(role: Exclude<UserRole, null>) {
-    currentUser = {
-      id: '1',
-      name: role === 'student' ? 'Abinaya' : role === 'parent' ? 'Rajesh Kumar' : 'Admin',
-      email: role === 'student' ? 'abinaya@example.com' : role === 'parent' ? 'rajesh@example.com' : 'admin@acuity.com',
-      role,
-    }
-    this.notify()
+  get isAuthenticated() {
+    return !!currentUser && !!getAccessToken()
   },
 
-  logout() {
+  async login(email: string, password: string) {
+    const data = await authService.login(email, password)
+    currentUser = data.user
+    notify()
+    return data
+  },
+
+  async register(email: string, password: string, fullName: string, role: UserRole) {
+    const user = await authService.register(email, password, fullName, role)
+    return user
+  },
+
+  async logout() {
+    try {
+      await authService.logout()
+    } catch {
+      clearTokens()
+    }
     currentUser = null
-    this.notify()
+    notify()
+  },
+
+  setUser(user: User) {
+    currentUser = user
+    notify()
   },
 
   subscribe(listener: () => void) {
@@ -36,11 +52,6 @@ const authStore = {
       listeners = listeners.filter(l => l !== listener)
     }
   },
-
-  notify() {
-    listeners.forEach(l => l())
-  }
 }
 
 export { authStore }
-export type { User }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { GraduationCap, Eye, EyeOff } from 'lucide-react'
 import { authStore, type UserRole } from '@/store/authStore'
+import { ApiError } from '@/services/api'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -12,12 +13,29 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (selectedRole) {
-      authStore.login(selectedRole)
+    setError('')
+    setLoading(true)
+    try {
+      if (isRegister) {
+        await authStore.register(email, password, name, selectedRole)
+        await authStore.login(email, password)
+      } else {
+        await authStore.login(email, password)
+      }
       navigate(`/${selectedRole}/dashboard`)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -38,6 +56,12 @@ export function LoginPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
@@ -110,8 +134,8 @@ export function LoginPage() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary w-full mt-2">
-              {isRegister ? 'Create Account' : 'Sign In'}
+            <button type="submit" disabled={loading} className="btn-primary w-full mt-2 disabled:opacity-50">
+              {loading ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
             </button>
           </form>
 

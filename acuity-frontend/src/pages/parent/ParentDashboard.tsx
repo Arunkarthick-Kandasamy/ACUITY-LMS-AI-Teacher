@@ -1,22 +1,40 @@
-import { parentData, openScoreData } from '@/data/mockData'
-import { TrendingUp, Clock, AlertTriangle, BookOpen, ArrowUpRight, Award } from 'lucide-react'
+import { useAuthApi } from '@/hooks/useApi'
+import { getParentStudents, getParentStudentProgress } from '@/services/parent'
+import { TrendingUp, Clock, AlertTriangle, BookOpen, Award, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ParentDashboard() {
+  const { data: students, loading } = useAuthApi(() => getParentStudents(), [])
+  const firstStudent = students?.[0]
+
+  const { data: progress } = useAuthApi(
+    () => firstStudent ? getParentStudentProgress(firstStudent.student_id) : Promise.reject(),
+    [firstStudent?.student_id],
+  )
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-navy-600" />
+      </div>
+    )
+  }
+
+  const studentName = firstStudent?.full_name || 'Student'
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Parent Dashboard</h1>
-        <p className="text-sm text-slate-500 mt-1">Track {parentData.studentName}'s learning journey</p>
+        <p className="text-sm text-slate-500 mt-1">Track {studentName}'s learning journey</p>
       </div>
 
-      {/* Overview Stats */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: Award, label: 'Overall Mastery', value: `${parentData.overallMastery}%`, change: '+5% this week', color: 'text-emerald-600 bg-emerald-50' },
-          { icon: BookOpen, label: 'Current Track', value: 'Support Learner', desc: parentData.trackReason, color: 'text-amber-600 bg-amber-50' },
-          { icon: Clock, label: 'Time This Week', value: `${parentData.timeSpentThisWeek}h`, change: `↑ ${Math.round((parentData.timeSpentThisWeek - parentData.previousWeekTime) / parentData.previousWeekTime * 100)}% vs last week`, color: 'text-blue-600 bg-blue-50' },
-          { icon: TrendingUp, label: 'Module Type', value: 'Simplified', desc: 'Step-by-step with examples', color: 'text-purple-600 bg-purple-50' },
+          { icon: Award, label: 'Overall Mastery', value: firstStudent ? `${Math.round(firstStudent.overall_mastery_avg * 100)}%` : 'N/A', change: `${firstStudent?.active_courses || 0} active courses`, color: 'text-emerald-600 bg-emerald-50' },
+          { icon: BookOpen, label: 'Status', value: firstStudent?.overall_mastery_avg && firstStudent.overall_mastery_avg >= 0.75 ? 'Good Learner' : 'Support Learner', desc: 'Personalized learning track', color: 'text-amber-600 bg-amber-50' },
+          { icon: Clock, label: 'Active Courses', value: String(firstStudent?.active_courses || 0), change: `${firstStudent?.current_streak_days || 0} day streak`, color: 'text-blue-600 bg-blue-50' },
+          { icon: TrendingUp, label: 'Last Active', value: firstStudent?.last_active ? new Date(firstStudent.last_active).toLocaleDateString() : 'N/A', color: 'text-purple-600 bg-purple-50' },
         ].map((stat) => {
           const Icon = stat.icon
           return (
@@ -28,79 +46,41 @@ export function ParentDashboard() {
                 <div className="text-xs text-slate-400 font-medium">{stat.label}</div>
               </div>
               <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
-              {'change' in stat && stat.change && <div className="text-xs text-emerald-600 mt-1">{stat.change}</div>}
+              {stat.change && <div className="text-xs text-emerald-600 mt-1">{stat.change}</div>}
               {'desc' in stat && stat.desc && <div className="text-xs text-slate-400 mt-1">{stat.desc}</div>}
             </div>
           )
         })}
       </div>
 
-      {/* Weekly Scores */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="font-semibold text-slate-900 mb-4">Weekly Performance</h2>
-        <div className="flex items-end gap-2 h-32">
-          {parentData.weeklyScores.map((day, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <span className={cn('text-xs font-medium', day.score >= 75 ? 'text-emerald-600' : 'text-amber-600')}>{day.score}</span>
-              <div
-                className={cn('w-full rounded-t-md transition-all', day.score >= 75 ? 'bg-emerald-500' : 'bg-amber-500')}
-                style={{ height: `${day.score}%`, maxHeight: '100px', minHeight: '4px' }}
-              />
-              <span className="text-[10px] text-slate-400">{day.day}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Weak Topics & Alerts */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="font-semibold text-slate-900 mb-4">Areas Needing Support</h2>
-          <div className="space-y-3">
-            {parentData.weakTopics.map((topic) => (
-              <div key={topic.topic}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{topic.topic}</span>
-                  <span className="text-red-500 font-medium">{topic.mastery}%</span>
-                </div>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill bg-red-500" style={{ width: `${topic.mastery}%` }} />
-                </div>
+          <h2 className="font-semibold text-slate-900 mb-4">Recent Activity</h2>
+          {progress ? (
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm p-3 rounded-lg bg-slate-50">
+                <span className="text-slate-600">Courses</span>
+                <span className="font-medium">{(progress as Record<string, unknown>)?.courses ? ((progress as Record<string, unknown>).courses as unknown[]).length : 0}</span>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-            <div className="flex items-center gap-2 text-sm text-amber-800">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Simplified module recommended based on current scores</span>
+              <div className="flex justify-between text-sm p-3 rounded-lg bg-slate-50">
+                <span className="text-slate-600">Mastery Avg</span>
+                <span className="font-medium">{firstStudent ? `${Math.round(firstStudent.overall_mastery_avg * 100)}%` : 'N/A'}</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="text-sm text-slate-400">No recent activity data available.</p>
+          )}
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="font-semibold text-slate-900 mb-4">Recent Updates</h2>
-          <div className="space-y-3">
-            {parentData.alerts.map((alert) => (
-              <div key={alert.id} className={cn(
-                'flex items-start gap-3 p-3 rounded-lg border',
-                alert.type === 'success' && 'bg-emerald-50 border-emerald-200',
-                alert.type === 'warning' && 'bg-amber-50 border-amber-200',
-                alert.type === 'info' && 'bg-blue-50 border-blue-200',
-              )}>
-                {alert.type === 'success' && <TrendingUp className="w-4 h-4 text-emerald-600 mt-0.5" />}
-                {alert.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />}
-                {alert.type === 'info' && <Clock className="w-4 h-4 text-blue-600 mt-0.5" />}
-                <div>
-                  <p className={cn(
-                    'text-sm font-medium',
-                    alert.type === 'success' && 'text-emerald-800',
-                    alert.type === 'warning' && 'text-amber-800',
-                    alert.type === 'info' && 'text-blue-800',
-                  )}>{alert.message}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{alert.date}</p>
-                </div>
-              </div>
-            ))}
+          <h2 className="font-semibold text-slate-900 mb-4">Quick Actions</h2>
+          <div className="space-y-2">
+            <button className="w-full text-left p-3 rounded-lg bg-navy-50 border border-navy-200 hover:bg-navy-100 transition-all">
+              <span className="text-sm font-medium text-navy-800">View Full Progress</span>
+            </button>
+            <button className="w-full text-left p-3 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-all">
+              <span className="text-sm font-medium text-emerald-800">Generate Report</span>
+            </button>
           </div>
         </div>
       </div>

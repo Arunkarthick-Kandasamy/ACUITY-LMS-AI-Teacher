@@ -1,36 +1,86 @@
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock } from 'lucide-react'
+import { useAuthApi } from '@/hooks/useApi'
+import { getEnrollments } from '@/services/enrollment'
+import { getCurriculumTree } from '@/services/progress'
+import { getConceptExercises } from '@/services/curriculum'
+import { recordAttempt } from '@/services/progress'
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const questions = [
-  { id: 1, question: 'What is the value of x in the equation 2x + 5 = 13?', options: ['x = 3', 'x = 4', 'x = 5', 'x = 6'], correct: 1 },
-  { id: 2, question: 'Simplify: 3(x + 2) - 2x', options: ['x + 6', 'x + 5', '3x + 6', '5x + 6'], correct: 0 },
-  { id: 3, question: 'What is the slope of the line y = 2x + 3?', options: ['2', '3', '-2', '1/2'], correct: 0 },
-]
 
 export function AssessmentPage() {
   const [currentQ, setCurrentQ] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, number>>({})
+  const [answers, setAnswers] = useState<Record<number, string>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [score, setScore] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+
+  const { data: enrollments } = useAuthApi(() => getEnrollments('active'), [])
+  const courseId = enrollments?.[0]?.course_id
+
+  const { data: curriculum } = useAuthApi(
+    () => courseId ? getCurriculumTree(courseId) : Promise.reject(),
+    [courseId],
+  )
+
+  const firstConceptId = curriculum?.modules?.[0]?.lessons?.[0]?.concepts?.[0]?.concept_id
+  const { data: exercisesData, loading } = useAuthApi(
+    () => firstConceptId ? getConceptExercises(firstConceptId) : Promise.reject(),
+    [firstConceptId],
+  )
+
+  const questions = (exercisesData || []).map((ex, i) => ({
+    id: ex.exercise_id,
+    question: ex.prompt,
+    options: ex.options ? Object.values(ex.options) : [],
+    correctIndex: 0,
+  }))
 
   const handleAnswer = (optionIndex: number) => {
-    if (submitted) return
-    setAnswers(prev => ({ ...prev, [currentQ]: optionIndex }))
+    if (submitted || submitting) return
+    setAnswers(prev => ({ ...prev, [currentQ]: String(optionIndex) }))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    let correctCount = 0
+    for (let i = 0; i < questions.length; i++) {
+      try {
+        const res = await recordAttempt(questions[i].id, { response: answers[i] || '' })
+        if (res.data.is_correct) correctCount++
+      } catch {}
+    }
+    setScore(Math.round((correctCount / questions.length) * 100))
     setSubmitted(true)
+    setSubmitting(false)
   }
 
-  const score = submitted
-    ? Math.round((Object.entries(answers).filter(([q, a]) => a === questions[Number(q)].correct).length / questions.length) * 100)
-    : 0
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-navy-600" />
+      </div>
+    )
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold text-slate-900">Assessment</h1>
+          <p className="text-sm text-slate-500 mt-1">No assessments available yet</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+          <p className="text-slate-500">Complete a lesson to unlock assessments.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-slate-900">Assessment</h1>
-        <p className="text-sm text-slate-500 mt-1">Quadratic Functions · 3 questions</p>
+        <p className="text-sm text-slate-500 mt-1">{questions.length} questions</p>
       </div>
 
       {submitted ? (
@@ -41,10 +91,10 @@ export function AssessmentPage() {
           <h2 className="text-xl font-semibold text-slate-900 mb-2">Assessment Complete!</h2>
           <div className="text-4xl font-bold text-navy-800 mb-2">{score}%</div>
           <p className="text-sm text-slate-500 mb-6">
-            {score >= 75 ? 'Great job! You have a strong understanding.' : 'Keep practicing! You\'re making progress.'}
+            {score >= 75 ? "Great job! You have a strong understanding." : "Keep practicing! You're making progress."}
           </p>
           <div className="flex items-center justify-center gap-3">
-            <button onClick={() => { setSubmitted(false); setAnswers({}); setCurrentQ(0) }} className="btn-secondary">
+            <button onClick={() => { setSubmitted(false); setAnswers({}); setCurrentQ(0); setScore(0) }} className="btn-secondary">
               Retry
             </button>
             <button onClick={() => window.history.back()} className="btn-primary">
@@ -54,7 +104,6 @@ export function AssessmentPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          {/* Progress */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex gap-1.5">
               {questions.map((_, i) => (
@@ -76,7 +125,7 @@ export function AssessmentPage() {
                 onClick={() => handleAnswer(i)}
                 className={cn(
                   'w-full text-left px-4 py-3 rounded-lg border text-sm transition-all',
-                  answers[currentQ] === i
+                  answers[currentQ] === String(i)
                     ? 'border-navy-800 bg-navy-50 text-navy-900 font-medium'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                 )}
@@ -105,10 +154,10 @@ export function AssessmentPage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={Object.keys(answers).length < questions.length}
+                disabled={Object.keys(answers).length < questions.length || submitting}
                 className="btn-primary disabled:opacity-50"
               >
-                Submit
+                {submitting ? 'Submitting...' : 'Submit'}
               </button>
             )}
           </div>

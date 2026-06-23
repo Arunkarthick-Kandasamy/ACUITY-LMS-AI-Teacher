@@ -6,8 +6,8 @@ export function Topbar() {
   const navigate = useNavigate()
   const user = authStore.user
 
-  const handleLogout = () => {
-    authStore.logout()
+  const handleLogout = async () => {
+    await authStore.logout()
     navigate('/')
   }
 
@@ -15,9 +15,9 @@ export function Topbar() {
     <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6">
       <div className="flex items-center gap-3">
         <h2 className="text-sm font-semibold text-slate-800">
-          Welcome back, {user?.name?.split(' ')[0]}
+          Welcome back, {user?.full_name?.split(' ')[0] || 'User'}
         </h2>
-        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-medium text-slate-500 uppercase tracking-wider capitalize">
           {user?.role}
         </span>
       </div>

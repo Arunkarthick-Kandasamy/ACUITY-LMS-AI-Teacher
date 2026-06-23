@@ -1,20 +1,49 @@
-import { lessons } from '@/data/mockData'
-import { CheckCircle2, Lock, Play, Star } from 'lucide-react'
+import { useState } from 'react'
+import { useAuthApi } from '@/hooks/useApi'
+import { getEnrollments } from '@/services/enrollment'
+import { getCurriculumTree } from '@/services/progress'
+import { CheckCircle2, Lock, Play, Star, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
 export function LearningPathPage() {
   const navigate = useNavigate()
 
+  const { data: enrollments } = useAuthApi(() => getEnrollments('active'), [])
+  const courseId = enrollments?.[0]?.course_id
+
+  const { data: curriculum, loading } = useAuthApi(
+    () => courseId ? getCurriculumTree(courseId) : Promise.reject(),
+    [courseId],
+  )
+
+  const lessons = curriculum?.modules?.flatMap(m =>
+    m.lessons?.map(l => ({
+      id: l.lesson_id,
+      title: l.title,
+      status: l.status || 'locked',
+      order: l.order_index,
+      duration: l.estimated_duration_minutes,
+    })) || []
+  )?.sort((a, b) => a.order - b.order) || []
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-navy-600" />
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-900">Learning Path</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{curriculum?.course_title || 'Learning Path'}</h1>
         <p className="text-sm text-slate-500 mt-1">Progress through your personalized curriculum</p>
       </div>
 
       <div className="space-y-3">
-        {lessons.map((lesson, i) => (
+        {lessons.map((lesson) => (
           <div
             key={lesson.id}
             className={cn(
@@ -53,13 +82,8 @@ export function LearningPathPage() {
                 <div className="flex items-center gap-3 mt-1">
                   <span className="flex items-center gap-1 text-xs text-slate-400">
                     <Star className="w-3 h-3" />
-                    {lesson.xp} XP
+                    {lesson.duration || 0} min
                   </span>
-                  {lesson.score && (
-                    <span className="text-xs text-emerald-600 font-medium">
-                      Score: {lesson.score}/100
-                    </span>
-                  )}
                 </div>
               </div>
 

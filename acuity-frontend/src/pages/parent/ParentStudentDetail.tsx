@@ -1,15 +1,34 @@
-import { parentData, openScoreData } from '@/data/mockData'
-import { getScoreColor, formatScore } from '@/lib/utils'
-import { cn } from '@/lib/utils'
-import { Clock, TrendingUp, BookOpen, ArrowUpRight } from 'lucide-react'
+import { useAuthApi } from '@/hooks/useApi'
+import { getParentStudents, getParentStudentProgress } from '@/services/parent'
+import { getScoreColor, cn } from '@/lib/utils'
+import { Clock, TrendingUp, BookOpen, ArrowUpRight, Loader2 } from 'lucide-react'
 
 export function ParentStudentDetail() {
+  const { data: students, loading } = useAuthApi(() => getParentStudents(), [])
+  const firstStudent = students?.[0]
+
+  const { data: progress } = useAuthApi(
+    () => firstStudent ? getParentStudentProgress(firstStudent.student_id) : Promise.reject(),
+    [firstStudent?.student_id],
+  )
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-navy-600" />
+      </div>
+    )
+  }
+
+  const studentName = firstStudent?.full_name || 'Student'
+  const overallMastery = firstStudent ? Math.round(firstStudent.overall_mastery_avg * 100) : 0
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{parentData.studentName}'s Progress</h1>
-          <p className="text-sm text-slate-500 mt-1">Grade {parentData.grade} · Detailed performance view</p>
+          <h1 className="text-xl font-semibold text-slate-900">{studentName}'s Progress</h1>
+          <p className="text-sm text-slate-500 mt-1">Grade {firstStudent?.grade_level || 'N/A'} · Detailed performance view</p>
         </div>
         <button className="btn-secondary text-sm">
           Download Report <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
@@ -18,18 +37,17 @@ export function ParentStudentDetail() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="font-semibold text-slate-900 mb-4">Open Score Parameters</h2>
+          <h2 className="font-semibold text-slate-900 mb-4">Performance Overview</h2>
           <div className="space-y-4">
             {[
-              { label: 'Correctness', value: openScoreData.parameters.correctness, desc: 'Accuracy of answers' },
-              { label: 'Response Time', value: openScoreData.parameters.responseTime, desc: 'Speed of answering' },
-              { label: 'Retries', value: openScoreData.parameters.retries, desc: 'Attempts to reach correct answer' },
-              { label: 'Skips', value: openScoreData.parameters.skips, desc: 'Questions avoided or abandoned' },
+              { label: 'Overall Mastery', value: overallMastery, desc: 'Average across all concepts' },
+              { label: 'Active Courses', value: firstStudent?.active_courses ? Math.min(firstStudent.active_courses * 25, 100) : 0, desc: 'Course engagement level' },
+              { label: 'Streak', value: firstStudent?.current_streak_days ? Math.min(firstStudent.current_streak_days * 10, 100) : 0, desc: 'Learning consistency' },
             ].map((param) => (
               <div key={param.label}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-slate-700">{param.label}</span>
-                  <span className={cn('font-medium', getScoreColor(param.value))}>{param.value}/100</span>
+                  <span className={cn('font-medium', getScoreColor(param.value))}>{firstStudent?.current_streak_days || param.value}/100</span>
                 </div>
                 <div className="progress-bar">
                   <div className={cn(
@@ -47,9 +65,9 @@ export function ParentStudentDetail() {
           <h2 className="font-semibold text-slate-900 mb-4">Learning Behavior</h2>
           <div className="space-y-4">
             {[
-              { icon: Clock, label: 'Peak Learning Time', value: '10:00 AM - 12:00 PM', desc: 'Student performs best during this time' },
-              { icon: BookOpen, label: 'Current Module', value: 'Simplified (Support Track)', desc: 'Open Score 72 — foundational reinforcement' },
-              { icon: TrendingUp, label: 'Weekly Trend', value: '↑ Improving', desc: '+10% accuracy improvement this week' },
+              { icon: Clock, label: 'Courses Active', value: String(firstStudent?.active_courses || 0), desc: 'Currently enrolled courses' },
+              { icon: BookOpen, label: 'Mastery Level', value: `${overallMastery}%`, desc: 'Overall concept mastery' },
+              { icon: TrendingUp, label: 'Streak', value: `${firstStudent?.current_streak_days || 0} days`, desc: 'Consecutive learning days' },
             ].map((item) => {
               const Icon = item.icon
               return (
