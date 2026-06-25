@@ -22,7 +22,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.execute('CREATE EXTENSION IF NOT EXISTS "pgcrypto"')
 
-    op.execute("CREATE TYPE user_role AS ENUM ('admin', 'student', 'parent')")
+    op.execute("CREATE TYPE user_role AS ENUM ('admin', 'student', 'parent', 'teacher')")
     op.execute("CREATE TYPE lesson_status AS ENUM ('draft', 'published', 'archived')")
     op.execute(
         "CREATE TYPE concept_content_type AS ENUM "
@@ -146,66 +146,7 @@ def upgrade() -> None:
     )
     op.create_index("ix_modules_course_id", "modules", ["course_id"])
 
-    op.create_table(
-        "student_course_enrollments",
-        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
-        sa.Column("student_id", sa.Uuid(), nullable=False),
-        sa.Column("course_id", sa.Uuid(), nullable=False),
-        sa.Column("enrolled_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("status", postgresql.ENUM("active", "paused", "completed", "dropped", name="enrollment_status", create_type=False), server_default=sa.text("'active'"), nullable=False),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("target_completion_date", sa.Date(), nullable=True),
-        sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("current_concept_id", sa.Uuid(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["course_id"], ["courses.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["current_concept_id"], ["concepts.id"], ondelete="SET NULL"),
-        sa.UniqueConstraint("student_id", "course_id", name="uq_student_active_enrollment"),
-    )
-    op.create_index("ix_student_course_enrollments_student_id", "student_course_enrollments", ["student_id"])
-    op.create_index("ix_student_course_enrollments_course_id", "student_course_enrollments", ["course_id"])
-    op.create_index("ix_student_course_enrollments_status", "student_course_enrollments", ["status"])
-    op.create_index("ix_student_course_enrollments_current_concept_id", "student_course_enrollments", ["current_concept_id"])
-
-    op.create_table(
-        "student_memories",
-        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
-        sa.Column("student_id", sa.Uuid(), nullable=False),
-        sa.Column("key", sa.String(100), nullable=False),
-        sa.Column("value", postgresql.JSONB(), nullable=False),
-        sa.Column("importance", sa.Float(), server_default=sa.text("0.5"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("student_id", "key"),
-    )
-    op.create_index("ix_student_memories_student_id", "student_memories", ["student_id"])
-    op.create_index("ix_student_memories_importance", "student_memories", ["importance"])
-
-    op.create_table(
-        "reports",
-        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
-        sa.Column("student_id", sa.Uuid(), nullable=False),
-        sa.Column("parent_id", sa.Uuid(), nullable=True),
-        sa.Column("report_type", postgresql.ENUM("weekly", "monthly", "milestone", name="report_type", create_type=False), nullable=False),
-        sa.Column("generated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("summary", sa.Text(), nullable=True),
-        sa.Column("recommendations", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb"), nullable=False),
-        sa.Column("pdf_url", sa.Text(), nullable=True),
-        sa.Column("is_read", sa.Boolean(), server_default=sa.text("false"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["parent_id"], ["users.id"], ondelete="SET NULL"),
-    )
-    op.create_index("ix_reports_student_id", "reports", ["student_id"])
-    op.create_index("ix_reports_parent_id", "reports", ["parent_id"])
-    op.create_index("ix_reports_report_type", "reports", ["report_type"])
-
+    # -- tables that concepts depends on (lessons -> modules -> courses) --
     op.create_table(
         "lessons",
         sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
@@ -224,24 +165,6 @@ def upgrade() -> None:
     )
     op.create_index("ix_lessons_module_id", "lessons", ["module_id"])
     op.create_index("ix_lessons_status", "lessons", ["status"])
-
-    op.create_table(
-        "course_schedules",
-        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
-        sa.Column("enrollment_id", sa.Uuid(), nullable=False),
-        sa.Column("target_lessons_per_week", sa.Integer(), server_default=sa.text("3"), nullable=False),
-        sa.Column("current_week", sa.Integer(), server_default=sa.text("1"), nullable=False),
-        sa.Column("pace_status", postgresql.ENUM("on_track", "behind", "ahead", name="pace_status", create_type=False), server_default=sa.text("'on_track'"), nullable=False),
-        sa.Column("last_pacing_adjustment_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("milestones", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["enrollment_id"], ["student_course_enrollments.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("enrollment_id"),
-    )
-    op.create_index("ix_course_schedules_enrollment_id", "course_schedules", ["enrollment_id"])
-    op.create_index("ix_course_schedules_pace_status", "course_schedules", ["pace_status"])
 
     op.create_table(
         "concepts",
@@ -482,8 +405,90 @@ def upgrade() -> None:
     op.create_index("ix_misconceptions_concept_id", "misconceptions", ["concept_id"])
     op.create_index("ix_misconceptions_detected_in_session_id", "misconceptions", ["detected_in_session_id"])
 
+    op.create_table(
+        "student_course_enrollments",
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("student_id", sa.Uuid(), nullable=False),
+        sa.Column("course_id", sa.Uuid(), nullable=False),
+        sa.Column("enrolled_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("status", postgresql.ENUM("active", "paused", "completed", "dropped", name="enrollment_status", create_type=False), server_default=sa.text("'active'"), nullable=False),
+        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("target_completion_date", sa.Date(), nullable=True),
+        sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("current_concept_id", sa.Uuid(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["course_id"], ["courses.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["current_concept_id"], ["concepts.id"], ondelete="SET NULL"),
+        sa.UniqueConstraint("student_id", "course_id", name="uq_student_active_enrollment"),
+    )
+    op.create_index("ix_student_course_enrollments_student_id", "student_course_enrollments", ["student_id"])
+    op.create_index("ix_student_course_enrollments_course_id", "student_course_enrollments", ["course_id"])
+    op.create_index("ix_student_course_enrollments_status", "student_course_enrollments", ["status"])
+    op.create_index("ix_student_course_enrollments_current_concept_id", "student_course_enrollments", ["current_concept_id"])
+
+    op.create_table(
+        "student_memories",
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("student_id", sa.Uuid(), nullable=False),
+        sa.Column("key", sa.String(100), nullable=False),
+        sa.Column("value", postgresql.JSONB(), nullable=False),
+        sa.Column("importance", sa.Float(), server_default=sa.text("0.5"), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
+        sa.UniqueConstraint("student_id", "key"),
+    )
+    op.create_index("ix_student_memories_student_id", "student_memories", ["student_id"])
+    op.create_index("ix_student_memories_importance", "student_memories", ["importance"])
+
+    op.create_table(
+        "reports",
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("student_id", sa.Uuid(), nullable=False),
+        sa.Column("parent_id", sa.Uuid(), nullable=True),
+        sa.Column("report_type", postgresql.ENUM("weekly", "monthly", "milestone", name="report_type", create_type=False), nullable=False),
+        sa.Column("generated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("summary", sa.Text(), nullable=True),
+        sa.Column("recommendations", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb"), nullable=False),
+        sa.Column("pdf_url", sa.Text(), nullable=True),
+        sa.Column("is_read", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(["student_id"], ["student_profiles.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["parent_id"], ["users.id"], ondelete="SET NULL"),
+    )
+    op.create_index("ix_reports_student_id", "reports", ["student_id"])
+    op.create_index("ix_reports_parent_id", "reports", ["parent_id"])
+    op.create_index("ix_reports_report_type", "reports", ["report_type"])
+
+    op.create_table(
+        "course_schedules",
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("enrollment_id", sa.Uuid(), nullable=False),
+        sa.Column("target_lessons_per_week", sa.Integer(), server_default=sa.text("3"), nullable=False),
+        sa.Column("current_week", sa.Integer(), server_default=sa.text("1"), nullable=False),
+        sa.Column("pace_status", postgresql.ENUM("on_track", "behind", "ahead", name="pace_status", create_type=False), server_default=sa.text("'on_track'"), nullable=False),
+        sa.Column("last_pacing_adjustment_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("milestones", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb"), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(["enrollment_id"], ["student_course_enrollments.id"], ondelete="CASCADE"),
+        sa.UniqueConstraint("enrollment_id"),
+    )
+    op.create_index("ix_course_schedules_enrollment_id", "course_schedules", ["enrollment_id"])
+    op.create_index("ix_course_schedules_pace_status", "course_schedules", ["pace_status"])
+
 
 def downgrade() -> None:
+    op.drop_table("course_schedules")
+    op.drop_table("reports")
+    op.drop_table("student_memories")
+    op.drop_table("student_course_enrollments")
     op.drop_table("misconceptions")
     op.drop_table("attempts")
     op.drop_table("knowledge_edges")
@@ -496,11 +501,7 @@ def downgrade() -> None:
     op.drop_table("lesson_progress")
     op.drop_table("learning_objectives")
     op.drop_table("concepts")
-    op.drop_table("course_schedules")
     op.drop_table("lessons")
-    op.drop_table("reports")
-    op.drop_table("student_memories")
-    op.drop_table("student_course_enrollments")
     op.drop_table("modules")
     op.drop_table("parent_student_links")
     op.drop_table("audit_logs")

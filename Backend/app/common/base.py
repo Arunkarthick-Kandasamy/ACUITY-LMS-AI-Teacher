@@ -5,6 +5,7 @@ import uuid
 from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
+from sqlalchemy import Uuid
 
 from app.config import settings
 
@@ -18,9 +19,10 @@ def _generate_uuid() -> str:
 
 
 class UUIDMixin:
-    id: Mapped[str] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(),
         primary_key=True,
-        default=_generate_uuid,
+        default=uuid.uuid4,
     )
 
 

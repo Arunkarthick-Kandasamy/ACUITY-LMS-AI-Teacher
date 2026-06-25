@@ -22,12 +22,12 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "assessments",
-        sa.Column("id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column("title", sa.String(200), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("lesson_id", sa.String(), nullable=True),
-        sa.Column("module_id", sa.String(), nullable=True),
-        sa.Column("course_id", sa.String(), nullable=False),
+        sa.Column("lesson_id", sa.Uuid(), nullable=True),
+        sa.Column("module_id", sa.Uuid(), nullable=True),
+        sa.Column("course_id", sa.Uuid(), nullable=False),
         sa.Column(
             "assessment_type",
             sa.Enum(
@@ -40,7 +40,7 @@ def upgrade() -> None:
         sa.Column("time_limit", sa.Integer(), nullable=True),
         sa.Column("max_attempts", sa.Integer(), nullable=False),
         sa.Column("is_published", sa.Boolean(), nullable=False),
-        sa.Column("created_by", sa.String(), nullable=False),
+        sa.Column("created_by", sa.Uuid(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["course_id"], ["courses.id"], ondelete="CASCADE"),
@@ -56,8 +56,8 @@ def upgrade() -> None:
 
     op.create_table(
         "assessment_questions",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("assessment_id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("assessment_id", sa.Uuid(), nullable=False),
         sa.Column(
             "question_type",
             sa.Enum(
@@ -87,9 +87,9 @@ def upgrade() -> None:
 
     op.create_table(
         "assessment_attempts",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("assessment_id", sa.String(), nullable=False),
-        sa.Column("student_id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("assessment_id", sa.Uuid(), nullable=False),
+        sa.Column("student_id", sa.Uuid(), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("score", sa.Float(), nullable=False),
@@ -115,9 +115,9 @@ def upgrade() -> None:
 
     op.create_table(
         "assessment_responses",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("attempt_id", sa.String(), nullable=False),
-        sa.Column("question_id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("attempt_id", sa.Uuid(), nullable=False),
+        sa.Column("question_id", sa.Uuid(), nullable=False),
         sa.Column("response", sa.Text(), nullable=False),
         sa.Column("is_correct", sa.Boolean(), nullable=False),
         sa.Column("score", sa.Float(), nullable=False),
@@ -142,10 +142,10 @@ def upgrade() -> None:
 
     op.create_table(
         "question_bank",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("course_id", sa.String(), nullable=False),
-        sa.Column("lesson_id", sa.String(), nullable=True),
-        sa.Column("concept_id", sa.String(), nullable=True),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("course_id", sa.Uuid(), nullable=False),
+        sa.Column("lesson_id", sa.Uuid(), nullable=True),
+        sa.Column("concept_id", sa.Uuid(), nullable=True),
         sa.Column(
             "question_type",
             sa.Enum(

@@ -76,9 +76,9 @@ class AuthService:
 
         jti = str(uuid.uuid4())
         access_token = create_access_token(
-            subject=user.id, email=user.email, role=user.role.value
+            subject=str(user.id), email=user.email, role=user.role.value
         )
-        refresh_token = create_refresh_token(subject=user.id, jti=jti)
+        refresh_token = create_refresh_token(subject=str(user.id), jti=jti)
 
         now = datetime.now(timezone.utc)
         token_hash = _hash_token(refresh_token)
@@ -115,9 +115,9 @@ class AuthService:
 
         jti = str(uuid.uuid4())
         new_access_token = create_access_token(
-            subject=user.id, email=user.email, role=user.role.value
+            subject=str(user.id), email=user.email, role=user.role.value
         )
-        new_refresh_token = create_refresh_token(subject=user.id, jti=jti)
+        new_refresh_token = create_refresh_token(subject=str(user.id), jti=jti)
 
         now = datetime.now(timezone.utc)
         new_token_record = RefreshToken(

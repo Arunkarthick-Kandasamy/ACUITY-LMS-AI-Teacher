@@ -21,9 +21,9 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "teacher_student_assignments",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("teacher_id", sa.String(), nullable=False),
-        sa.Column("student_id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("teacher_id", sa.Uuid(), nullable=False),
+        sa.Column("student_id", sa.Uuid(), nullable=False),
         sa.Column("assigned_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
@@ -45,9 +45,9 @@ def upgrade() -> None:
 
     op.create_table(
         "teacher_course_assignments",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("teacher_id", sa.String(), nullable=False),
-        sa.Column("course_id", sa.String(), nullable=False),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column("teacher_id", sa.Uuid(), nullable=False),
+        sa.Column("course_id", sa.Uuid(), nullable=False),
         sa.Column("role", sa.String(50), nullable=False, server_default="instructor"),
         sa.Column("assigned_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),

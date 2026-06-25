@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -20,7 +21,7 @@ class LoginRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    user_id: str
+    user_id: uuid.UUID
     email: str
     full_name: str
     role: UserRole
