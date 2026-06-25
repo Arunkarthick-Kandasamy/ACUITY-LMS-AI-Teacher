@@ -26,19 +26,19 @@ def decide_after_evaluation(state: TeacherState) -> str:
     return "diagnose"
 
 
-def decide_after_diagnosis(state: TeacherState) -> str:
-    recommended = state.get("recommended_action")
-    if recommended is None:
-        return "example"
-    return recommended
-
-
-RETURN_ACTION_MAP = {
+RETURN_ACTION_MAP: dict[str, str] = {
     "reteach": "retrieve_memories",
     "prerequisite": "retrieve_memories",
     "example": "provide_example",
     "continue": "complete_concept",
 }
+
+
+def decide_after_diagnosis(state: TeacherState) -> str:
+    recommended = state.get("recommended_action")
+    if recommended is None:
+        return "example"
+    return recommended if recommended in RETURN_ACTION_MAP else "example"
 
 
 def build_teacher_graph() -> StateGraph:

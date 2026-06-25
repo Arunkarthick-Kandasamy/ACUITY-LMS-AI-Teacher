@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import secrets
+
 from fastapi import APIRouter, Depends
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_active_user
@@ -125,6 +128,13 @@ async def forgot_password(
             message="If the email exists, a reset link has been sent"
         ).model_dump(),
     }
+
+
+@router.get("/csrf-token")
+async def get_csrf_token(response: Response) -> dict:
+    token = secrets.token_hex(32)
+    response.set_cookie(key="csrf_token", value=token, httponly=True, samesite="strict", secure=False)
+    return {"status": "success", "data": {"csrf_token": token}}
 
 
 @router.post("/reset-password")

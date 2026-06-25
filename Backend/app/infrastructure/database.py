@@ -22,6 +22,8 @@ import app.memory.models  # noqa: F401
 import app.evaluation.models  # noqa: F401
 import app.reports.models  # noqa: F401
 import app.teaching.models  # noqa: F401
+import app.analytics.models  # noqa: F401
+import app.assessments.models  # noqa: F401
 import app.users.models  # noqa: F401
 from app.config import settings
 

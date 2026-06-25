@@ -29,10 +29,11 @@ async def generate_schedule(
     schedule = await service.generate_schedule(
         enrollment_id=body.enrollment_id, user_id=current_user.id
     )
+    course_id = schedule.enrollment.course_id if (hasattr(schedule, "enrollment") and schedule.enrollment) else ""
     return success_response(
         PacingStatusResponse(
             enrollment_id=schedule.enrollment_id,
-            course_id="",
+            course_id=course_id,
             schedule_id=schedule.id,
             current_week=schedule.current_week,
             target_lessons_per_week=schedule.target_lessons_per_week,

@@ -6,6 +6,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 # Import all models so they register with Base.metadata
+import app.assessments.models  # noqa: F401
 import app.audit.models  # noqa: F401
 import app.curriculum.models  # noqa: F401
 import app.diagnosis.models  # noqa: F401
@@ -15,6 +16,7 @@ import app.mastery.models  # noqa: F401
 import app.memory.models  # noqa: F401
 import app.reports.models  # noqa: F401
 import app.teaching.models  # noqa: F401
+import app.teacher.models  # noqa: F401
 import app.users.models  # noqa: F401
 from alembic import context
 from app.common.base import Base

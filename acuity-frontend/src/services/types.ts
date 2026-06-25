@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'student' | 'parent'
+export type UserRole = 'admin' | 'student' | 'parent' | 'teacher'
 
 export interface User {
   user_id: string
@@ -348,6 +348,142 @@ export interface ApiResponse<T> {
   }
 }
 
+export interface Assessment {
+  id: string
+  title: string
+  description?: string
+  lesson_id?: string
+  module_id?: string
+  course_id: string
+  assessment_type: string
+  passing_score: number
+  time_limit?: number
+  max_attempts: number
+  is_published: boolean
+  question_count: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface AssessmentQuestion {
+  id: string
+  question_type: string
+  prompt: string
+  options?: Record<string, string>
+  difficulty: number
+  marks: number
+  order_index: number
+}
+
+export interface AssessmentAttemptStart {
+  attempt_id: string
+  assessment_id: string
+  started_at: string
+  attempt_number: number
+  questions: AssessmentQuestion[]
+  time_limit?: number
+  time_limit_seconds?: number
+}
+
+export interface AssessmentSubmitResponse {
+  attempt_id: string
+  assessment_id: string
+  score: number
+  percentage: number
+  passed: boolean
+  total_marks: number
+  earned_marks: number
+  completed_at: string
+}
+
+export interface AssessmentResultResponse {
+  attempt_id: string
+  assessment_id: string
+  assessment_title: string
+  assessment_type: string
+  passing_score: number
+  score: number
+  percentage: number
+  passed: boolean
+  attempt_number: number
+  started_at?: string
+  completed_at?: string
+  total_marks: number
+  earned_marks: number
+  responses: AssessmentResultDetail[]
+}
+
+export interface AssessmentResultDetail {
+  question_id: string
+  prompt: string
+  question_type: string
+  marks: number
+  response: string
+  correct_answer: string
+  is_correct: boolean
+  score: number
+  feedback?: string
+  explanation?: string
+}
+
+export interface TeacherStudent {
+  student_id: string
+  full_name: string
+  email: string
+  grade_level?: string
+  active_courses: number
+  overall_mastery_avg: number
+  last_active?: string
+  current_streak_days: number
+  assigned_at?: string
+}
+
+export interface TeacherCourse {
+  course_id: string
+  title: string
+  code: string
+  role: string
+  assigned_at?: string
+}
+
+export interface TeacherDashboardData {
+  total_students: number
+  total_courses: number
+  students: TeacherStudent[]
+  recent_sessions: SessionItem[]
+}
+
+export interface SessionItem {
+  session_id: string
+  course_id: string
+  course_title?: string
+  state: string
+  started_at?: string
+  last_activity_at?: string
+}
+
+export interface AttemptItem {
+  attempt_id: string
+  exercise_id: string
+  is_correct: boolean
+  score: number
+  attempted_at?: string
+  concept_title?: string
+}
+
+export interface AssessmentAttemptHistory {
+  attempt_id: string
+  assessment_id: string
+  assessment_title: string
+  assessment_type: string
+  score: number
+  percentage: number
+  passed: boolean
+  attempt_number: number
+  started_at?: string
+  completed_at?: string
+}
+
 export interface Misconception {
   misconception_id: string
   concept_id: string
@@ -358,4 +494,46 @@ export interface Misconception {
   frequency: number
   is_resolved: boolean
   evidence?: { response: string; exercise_prompt: string; expected: string }[]
+}
+
+export interface AssessmentAnalytics {
+  average_score: number
+  total_attempts: number
+  pass_rate: number
+  avg_time_spent_seconds: number
+  pass_count: number
+  fail_count: number
+}
+
+export interface StudentProgressAnalytics {
+  total_lessons: number
+  completed_lessons: number
+  completion_rate: number
+  avg_mastery: number
+  time_spent_seconds: number
+  lessons_overdue: number
+}
+
+export interface CourseAnalytics {
+  course_id: string
+  title: string
+  total_students: number
+  active_students: number
+  completion_rate: number
+  avg_mastery: number
+  avg_assessment_score: number
+  total_assessments: number
+}
+
+export interface DashboardAnalyticsResponse {
+  total_users: number
+  total_students: number
+  total_admins: number
+  total_parents: number
+  total_courses: number
+  active_enrollments: number
+  active_sessions_today: number
+  total_assessment_attempts: number
+  overall_pass_rate: number
+  overall_completion_rate: number
 }

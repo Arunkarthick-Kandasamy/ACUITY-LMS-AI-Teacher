@@ -77,8 +77,8 @@ class Attempt(UUIDMixin, TimestampMixin, Base):
     exercise_id: Mapped[str] = mapped_column(
         ForeignKey("exercises.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    teaching_session_id: Mapped[str] = mapped_column(
-        ForeignKey("teaching_sessions.id", ondelete="CASCADE"), nullable=False, index=True
+    teaching_session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("teaching_sessions.id", ondelete="CASCADE"), nullable=True, index=True
     )
     response: Mapped[str] = mapped_column(Text, nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)

@@ -2,12 +2,12 @@ import { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import {
-  LayoutDashboard, BookOpen, Bot, ClipboardCheck, BarChart3, User,
+  LayoutDashboard, BookOpen, Bot, ClipboardCheck, BarChart3, User, GraduationCap,
 } from 'lucide-react'
 
 interface AppLayoutProps {
   children: ReactNode
-  role: 'student' | 'parent' | 'admin'
+  role: 'student' | 'parent' | 'admin' | 'teacher'
 }
 
 const sidebarConfig = {
@@ -40,6 +40,16 @@ const sidebarConfig = {
       { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
       { label: 'Students', path: '/admin/students', icon: User },
       { label: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
+      { label: 'Assessments', path: '/admin/assessments', icon: ClipboardCheck },
+    ],
+  },
+  teacher: {
+    title: 'Acuity',
+    role: 'Teacher Portal',
+    items: [
+      { label: 'Dashboard', path: '/teacher/dashboard', icon: LayoutDashboard },
+      { label: 'Students', path: '/teacher/students', icon: User },
+      { label: 'Courses', path: '/teacher/courses', icon: GraduationCap },
     ],
   },
 }

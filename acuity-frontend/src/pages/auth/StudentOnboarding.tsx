@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GraduationCap, ArrowRight, BookOpen, Sparkles } from 'lucide-react'
+import { GraduationCap, ArrowRight, BookOpen, Sparkles, AlertCircle } from 'lucide-react'
 import { authStore } from '@/store/authStore'
 import { enroll } from '@/services/enrollment'
 import { getCourses } from '@/services/curriculum'
@@ -16,6 +16,7 @@ export function StudentOnboarding() {
   const [subject, setSubject] = useState('')
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests(prev =>
@@ -25,13 +26,22 @@ export function StudentOnboarding() {
 
   const handleComplete = async () => {
     setLoading(true)
+    setError('')
     try {
       const res = await getCourses({ is_published: true, per_page: 1 })
       const course = res.data?.[0]
       if (course) {
         await enroll(course.course_id)
+      } else {
+        setError('No published courses available. Please contact your admin.')
+        setLoading(false)
+        return
       }
-    } catch {}
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to enroll. Please try again.')
+      setLoading(false)
+      return
+    }
     navigate('/student/dashboard')
   }
 
@@ -46,6 +56,13 @@ export function StudentOnboarding() {
           <h1 className="text-xl font-semibold text-slate-900">Welcome! Let's set up your profile</h1>
           <p className="text-sm text-slate-500 mt-1">Step {step} of 3</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {error}
+          </div>
+        )}
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
           <div className="flex gap-2 mb-6">

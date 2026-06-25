@@ -23,6 +23,9 @@ class Course(UUIDMixin, TimestampMixin, Base):
     modules: Mapped[list[Module]] = relationship(back_populates="course", cascade="all, delete-orphan")
     enrollments: Mapped[list[StudentCourseEnrollment]] = relationship(back_populates="course")
     teaching_sessions: Mapped[list[TeachingSession]] = relationship(back_populates="course")
+    assessments: Mapped[list["Assessment"]] = relationship(back_populates="course")
+    question_bank_items: Mapped[list["QuestionBank"]] = relationship(back_populates="course")
+    teacher_assignments: Mapped[list["TeacherCourseAssignment"]] = relationship(back_populates="course")
 
 
 class Module(UUIDMixin, TimestampMixin, Base):
@@ -37,6 +40,7 @@ class Module(UUIDMixin, TimestampMixin, Base):
 
     course: Mapped[Course] = relationship(back_populates="modules")
     lessons: Mapped[list[Lesson]] = relationship(back_populates="module", cascade="all, delete-orphan")
+    assessments: Mapped[list["Assessment"]] = relationship(back_populates="module")
 
 
 class Lesson(UUIDMixin, TimestampMixin, Base):
@@ -58,6 +62,7 @@ class Lesson(UUIDMixin, TimestampMixin, Base):
     )
     lesson_progress_records: Mapped[list[LessonProgress]] = relationship(back_populates="lesson")
     teaching_sessions: Mapped[list[TeachingSession]] = relationship(back_populates="current_lesson")
+    assessments: Mapped[list["Assessment"]] = relationship(back_populates="lesson")
 
 
 class Concept(UUIDMixin, TimestampMixin, Base):

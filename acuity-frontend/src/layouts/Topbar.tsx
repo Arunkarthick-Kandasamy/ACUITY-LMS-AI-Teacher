@@ -1,10 +1,16 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, LogOut, User, Settings } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { authStore } from '@/store/authStore'
 
 export function Topbar() {
   const navigate = useNavigate()
-  const user = authStore.user
+  const [user, setUser] = useState(authStore.user)
+
+  useEffect(() => {
+    const unsub = authStore.subscribe(() => setUser(authStore.user))
+    return unsub
+  }, [])
 
   const handleLogout = async () => {
     await authStore.logout()
@@ -23,13 +29,6 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <button className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
-          <Bell className="w-4.5 h-4.5" />
-        </button>
-        <button className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
-          <Settings className="w-4.5 h-4.5" />
-        </button>
-        <div className="w-px h-5 bg-slate-200 mx-1" />
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all"

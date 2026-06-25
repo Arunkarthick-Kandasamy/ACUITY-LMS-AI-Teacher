@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: acuity_test
+          POSTGRES_USER: acuity
+          POSTGRES_PASSWORD: acuity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r Backend/requirements.txt
+      - run: pip install pytest pytest-asyncio httpx
+      - run: cp Backend/.env.example Backend/.env
+      - run: pytest Backend/tests -v
+        env:
+          DATABASE_URL: postgresql+asyncpg://acuity:acuity_test@localhost:5432/acuity_test
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+        working-directory: acuity-frontend
+      - run: npm run build
+        working-directory: acuity-frontend

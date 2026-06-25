@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_active_user
+from app.auth.dependencies import get_current_active_user, require_roles
 from app.common.response import success_response
 from app.common.types import UserRole
 from app.config import settings
@@ -34,7 +34,7 @@ def _enrich_enrollment(enrollment) -> dict:
 async def enroll(
     body: EnrollmentCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles(UserRole.STUDENT)),
 ) -> dict:
     service = EnrollmentService(session)
     enrollment = await service.enroll(user_id=current_user.id, course_id=body.course_id)

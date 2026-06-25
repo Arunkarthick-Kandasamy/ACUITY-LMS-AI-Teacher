@@ -22,9 +22,16 @@ class User(UUIDMixin, TimestampMixin, Base):
         back_populates="parent", foreign_keys="ParentStudentLink.parent_id"
     )
     courses_created: Mapped[list[Course]] = relationship(back_populates="created_by_user")
+    assessments_created: Mapped[list["Assessment"]] = relationship(back_populates="creator")
     audit_logs: Mapped[list[AuditLog]] = relationship(back_populates="user")
     reports_as_parent: Mapped[list[Report]] = relationship(
         back_populates="parent", foreign_keys="Report.parent_id"
+    )
+    teacher_student_assignments: Mapped[list["TeacherStudentAssignment"]] = relationship(
+        back_populates="teacher", foreign_keys="TeacherStudentAssignment.teacher_id"
+    )
+    teacher_course_assignments: Mapped[list["TeacherCourseAssignment"]] = relationship(
+        back_populates="teacher", foreign_keys="TeacherCourseAssignment.teacher_id"
     )
 
 
@@ -48,6 +55,8 @@ class StudentProfile(UUIDMixin, TimestampMixin, Base):
     memories: Mapped[list[StudentMemory]] = relationship(back_populates="student")
     memory_entries: Mapped[list[MemoryEntry]] = relationship(back_populates="student")
     reports: Mapped[list[Report]] = relationship(back_populates="student")
+    assessment_attempts: Mapped[list["AssessmentAttempt"]] = relationship(back_populates="student")
+    teacher_assignments: Mapped[list["TeacherStudentAssignment"]] = relationship(back_populates="student")
 
 
 class ParentStudentLink(UUIDMixin, Base):

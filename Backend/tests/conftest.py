@@ -18,13 +18,13 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 def mock_db_healthy() -> None:
-    with patch("app.api.routes.health.check_db_health") as mock:
+    with patch("app.health.router.check_db_health") as mock:
         mock.return_value = True
         yield
 
 
 @pytest.fixture
 def mock_db_unhealthy() -> None:
-    with patch("app.api.routes.health.check_db_health") as mock:
+    with patch("app.health.router.check_db_health") as mock:
         mock.return_value = False
         yield

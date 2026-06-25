@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,7 @@ from app.ai.graphs.teacher import teacher_graph
 from app.ai.memory.service import MemoryService
 from app.ai.state import TeacherAction, TeacherState
 from app.auth.dependencies import get_current_active_user
+from app.common.guardrails import validate_content, validate_response
 from app.common.response import success_response
 from app.config import settings
 from app.curriculum.models import Concept, ConceptContent, Example
@@ -17,6 +20,8 @@ from app.knowledge_graph.models import KnowledgeEdge, KnowledgeNode
 from app.teaching.models import TeachingSession
 from app.teaching_sessions.service import SessionService
 from app.users.models import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix=f"{settings.api_prefix}", tags=["AI Teacher"])
 
@@ -140,6 +145,13 @@ async def teach(
         session_id, db
     )
 
+    if student_response and not validate_content(student_response):
+        logger.warning("Student response failed content validation for session %s", session_id)
+        return success_response({
+            "action": "error",
+            "error": "Student response contains inappropriate content.",
+        })
+
     conversation_history = teaching_session.context.get("conversation_history", [])
     current_action_raw = teaching_session.context.get("current_action")
 
@@ -167,7 +179,32 @@ async def teach(
         "expected_answer": None,
     }
 
-    result = await teacher_graph.ainvoke(initial_state)
+    try:
+        result = await teacher_graph.ainvoke(initial_state)
+    except Exception as e:
+        logger.exception("Teacher graph invocation failed for session %s", session_id)
+        return success_response({
+            "action": "error",
+            "error": "An error occurred while processing the teaching request. Please try again.",
+        })
+
+    teaching_content = result.get("teaching_content")
+    question = result.get("question")
+    evaluation = result.get("evaluation")
+
+    if teaching_content:
+        passed, reason = validate_response(teaching_content, {"context": "teaching"})
+        if not passed:
+            logger.warning("Teaching content failed guardrail for session %s: %s", session_id, reason)
+            return success_response({
+                "action": "error",
+                "error": "Generated content did not pass safety checks. Please try again.",
+            })
+
+    if evaluation:
+        passed, reason = validate_response(evaluation, {"context": "evaluation"})
+        if not passed:
+            logger.warning("Evaluation failed guardrail for session %s: %s", session_id, reason)
 
     teaching_session.context["conversation_history"] = result.get("conversation_history", [])
     teaching_session.context["current_action"] = (
@@ -176,9 +213,9 @@ async def teach(
         else result.get("current_action")
     )
     teaching_session.context["mastery_estimate"] = result.get("mastery_estimate", 0.0)
-    teaching_session.context["question"] = result.get("question")
-    teaching_session.context["teaching_content"] = result.get("teaching_content")
-    teaching_session.context["evaluation"] = result.get("evaluation")
+    teaching_session.context["question"] = question
+    teaching_session.context["teaching_content"] = teaching_content
+    teaching_session.context["evaluation"] = evaluation
     teaching_session.context["example_content"] = result.get("example_content")
     teaching_session.context["recommended_action"] = result.get("recommended_action")
     teaching_session.context["diagnosis_result"] = result.get("diagnosis_result")
@@ -188,31 +225,37 @@ async def teach(
     if diagnosis_result and diagnosis_result.get("diagnosis_type") in (
         "misconception", "knowledge_gap"
     ):
-        diag_service = DiagnosisService(db)
-        await diag_service.persist_misconception(
-            student_id=profile.id,
-            concept_id=teaching_session.current_concept_id or "",
-            category=diagnosis_result.get("misconception_category", "conceptual"),
-            description=diagnosis_result.get("misconception") or diagnosis_result.get("knowledge_gap") or "",
-            session_id=session_id,
-            evidence=diagnosis_result.get("evidence", []),
-        )
+        try:
+            diag_service = DiagnosisService(db)
+            await diag_service.persist_misconception(
+                student_id=profile.id,
+                concept_id=teaching_session.current_concept_id or "",
+                category=diagnosis_result.get("misconception_category", "conceptual"),
+                description=diagnosis_result.get("misconception") or diagnosis_result.get("knowledge_gap") or "",
+                session_id=session_id,
+                evidence=diagnosis_result.get("evidence", []),
+            )
+        except Exception as e:
+            logger.exception("Failed to persist misconception for session %s", session_id)
 
-    memory_service = MemoryService(db)
-    await memory_service.extract_and_store(
-        student_id=profile.id,
-        session_id=session_id,
-        concept_title=concept_data.get("concept_title", ""),
-        student_response=student_response or "",
-        mastery_estimate=result.get("mastery_estimate", 0.0),
-        evaluation=result.get("evaluation"),
-        diagnosis_type=diagnosis_result.get("diagnosis_type") if diagnosis_result else None,
-        misconception=diagnosis_result.get("misconception") if diagnosis_result else None,
-        misconception_category=diagnosis_result.get("misconception_category") if diagnosis_result else None,
-        knowledge_gap=diagnosis_result.get("knowledge_gap") if diagnosis_result else None,
-        recommended_action=result.get("recommended_action"),
-        evaluation_score=result.get("mastery_estimate"),
-    )
+    try:
+        memory_service = MemoryService(db)
+        await memory_service.extract_and_store(
+            student_id=profile.id,
+            session_id=session_id,
+            concept_title=concept_data.get("concept_title", ""),
+            student_response=student_response or "",
+            mastery_estimate=result.get("mastery_estimate", 0.0),
+            evaluation=evaluation,
+            diagnosis_type=diagnosis_result.get("diagnosis_type") if diagnosis_result else None,
+            misconception=diagnosis_result.get("misconception") if diagnosis_result else None,
+            misconception_category=diagnosis_result.get("misconception_category") if diagnosis_result else None,
+            knowledge_gap=diagnosis_result.get("knowledge_gap") if diagnosis_result else None,
+            recommended_action=result.get("recommended_action"),
+            evaluation_score=result.get("mastery_estimate"),
+        )
+    except Exception as e:
+        logger.exception("Memory extraction failed for session %s", session_id)
 
     action = result.get("current_action", TeacherAction.TEACH)
     if isinstance(action, TeacherAction):
@@ -224,12 +267,12 @@ async def teach(
         "mastery_estimate": result.get("mastery_estimate", 0.0),
     }
 
-    if result.get("teaching_content"):
-        response_data["teaching_content"] = result["teaching_content"]
-    if result.get("question"):
-        response_data["question"] = result["question"]
-    if result.get("evaluation"):
-        response_data["evaluation"] = result["evaluation"]
+    if teaching_content:
+        response_data["teaching_content"] = teaching_content
+    if question:
+        response_data["question"] = question
+    if evaluation:
+        response_data["evaluation"] = evaluation
     if result.get("example_content"):
         response_data["example_content"] = result["example_content"]
     if result.get("diagnosis_result"):

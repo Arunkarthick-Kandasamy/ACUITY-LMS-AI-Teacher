@@ -14,7 +14,7 @@ from app.ai.router import router as ai_router
 from app.parent_dashboard.router import router as parent_dashboard_router
 from app.content_ingestion.router import router as content_ingestion_router
 from app.reports.router import router as reports_router
-from app.api.routes.health import router as health_router
+from app.health.router import router as health_router
 from app.auth.router import router as auth_router
 from app.common.context import request_id_var
 from app.common.exceptions import AppException
@@ -28,6 +28,12 @@ from app.mastery.router import router as mastery_router
 from app.pacing.router import router as pacing_router
 from app.progress.router import router as progress_router
 from app.teaching_sessions.router import router as teaching_sessions_router
+from app.analytics.router import router as analytics_router
+from app.assessments.router import router as assessments_router
+from app.teacher.router import router as teacher_router
+from app.notifications.router import router as notifications_router
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 
 
 @asynccontextmanager
@@ -61,6 +67,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware, max_requests=200, window_seconds=60)
 
 
 @app.middleware("http")
@@ -138,6 +146,10 @@ app.include_router(ai_evaluation_router)
 app.include_router(parent_dashboard_router)
 app.include_router(content_ingestion_router)
 app.include_router(reports_router)
+app.include_router(assessments_router)
+app.include_router(analytics_router)
+app.include_router(teacher_router)
+app.include_router(notifications_router)
 
 
 # ---------------------------------------------------------------------------

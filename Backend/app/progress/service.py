@@ -94,7 +94,7 @@ class ProgressService:
             if existing.started_at is None:
                 update_data["started_at"] = now
 
-        updated = await self.progress_repo.update(lesson.id, **update_data)
+        updated = await self.progress_repo.update(existing.id, **update_data)
         if updated is None:
             raise NotFoundException(message="Lesson progress not found")
         return updated

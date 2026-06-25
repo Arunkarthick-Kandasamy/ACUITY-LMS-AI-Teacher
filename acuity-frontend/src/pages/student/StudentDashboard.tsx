@@ -73,31 +73,6 @@ export function StudentDashboard() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
-            {[
-              { label: 'Correctness', value: Math.round(overallMastery * 0.9), icon: '✓' },
-              { label: 'Response Time', value: Math.round(overallMastery * 0.8), icon: '⏱' },
-              { label: 'Retries', value: Math.round(overallMastery * 0.85), icon: '↻' },
-              { label: 'Skips', value: Math.round(overallMastery * 0.9), icon: '→' },
-            ].map((param) => (
-              <div key={param.label} className="bg-slate-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-slate-500">{param.label}</span>
-                  <span className="text-xs">{param.icon}</span>
-                </div>
-                <div className={cn('text-lg font-bold', getScoreColor(param.value))}>
-                  {formatScore(param.value)}
-                </div>
-                <div className="progress-bar mt-1">
-                  <div
-                    className={cn('progress-bar-fill', param.value >= 75 ? 'bg-emerald-500' : param.value >= 50 ? 'bg-amber-500' : 'bg-red-500')}
-                    style={{ width: `${param.value}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
           <p className="text-xs text-slate-400 mt-3">
             Overall Mastery: {overallMastery}/100 · {trackInfo.desc}
           </p>

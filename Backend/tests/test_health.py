@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from httpx import AsyncClient
+from unittest.mock import patch
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.main import app
 
 
 class TestHealthEndpoint:
@@ -39,3 +44,36 @@ class TestHealthEndpoint:
         assert "status" in data
         assert "version" in data
         assert "components" in data
+
+
+class TestHealthRouter:
+    def test_router_tags(self) -> None:
+        from app.health.router import router
+
+        assert "health" in router.tags
+
+    def test_router_paths(self) -> None:
+        from app.health.router import router
+
+        paths = [r.path for r in router.routes]
+        assert "/api/v1/health" in paths
+
+    @pytest.mark.asyncio
+    async def test_health_check_uses_check_db_health(self) -> None:
+        with patch("app.health.router.check_db_health") as mock_check:
+            mock_check.return_value = True
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.get("/api/v1/health")
+                assert response.status_code == 200
+                mock_check.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_health_check_degraded_with_failed_db(self) -> None:
+        with patch("app.health.router.check_db_health") as mock_check:
+            mock_check.return_value = False
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.get("/api/v1/health")
+                body = response.json()
+                assert body["data"]["status"] == "degraded"

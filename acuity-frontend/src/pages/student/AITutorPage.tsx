@@ -30,6 +30,11 @@ export function AITutorPage() {
         setSessionId(res.data.session_id)
       }).catch(() => {})
     }
+    return () => {
+      if (sessionId) {
+        endSession(sessionId).catch(() => {})
+      }
+    }
   }, [courseId, sessionId])
 
   useEffect(() => {

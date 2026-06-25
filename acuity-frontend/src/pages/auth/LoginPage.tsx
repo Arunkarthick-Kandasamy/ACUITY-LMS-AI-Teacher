@@ -134,6 +134,18 @@ export function LoginPage() {
               </div>
             </div>
 
+            {!isRegister && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate('/login?forgot=true')}
+                  className="text-xs text-navy-600 hover:text-navy-800 font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
             <button type="submit" disabled={loading} className="btn-primary w-full mt-2 disabled:opacity-50">
               {loading ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
             </button>

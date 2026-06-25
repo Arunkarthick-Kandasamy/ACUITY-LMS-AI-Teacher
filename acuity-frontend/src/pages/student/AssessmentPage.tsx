@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuthApi } from '@/hooks/useApi'
 import { getEnrollments } from '@/services/enrollment'
 import { getCurriculumTree } from '@/services/progress'
 import { getConceptExercises } from '@/services/curriculum'
 import { recordAttempt } from '@/services/progress'
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function AssessmentPage() {
@@ -13,6 +13,8 @@ export function AssessmentPage() {
   const [submitted, setSubmitted] = useState(false)
   const [score, setScore] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [results, setResults] = useState<Record<number, boolean>>({})
+  const [error, setError] = useState('')
 
   const { data: enrollments } = useAuthApi(() => getEnrollments('active'), [])
   const courseId = enrollments?.[0]?.course_id
@@ -28,11 +30,10 @@ export function AssessmentPage() {
     [firstConceptId],
   )
 
-  const questions = (exercisesData || []).map((ex, i) => ({
+  const questions = (exercisesData || []).map((ex) => ({
     id: ex.exercise_id,
     question: ex.prompt,
     options: ex.options ? Object.values(ex.options) : [],
-    correctIndex: 0,
   }))
 
   const handleAnswer = (optionIndex: number) => {
@@ -42,13 +43,19 @@ export function AssessmentPage() {
 
   const handleSubmit = async () => {
     setSubmitting(true)
+    setError('')
     let correctCount = 0
+    const resultMap: Record<number, boolean> = {}
     for (let i = 0; i < questions.length; i++) {
       try {
         const res = await recordAttempt(questions[i].id, { response: answers[i] || '' })
+        resultMap[i] = res.data.is_correct
         if (res.data.is_correct) correctCount++
-      } catch {}
+      } catch {
+        resultMap[i] = false
+      }
     }
+    setResults(resultMap)
     setScore(Math.round((correctCount / questions.length) * 100))
     setSubmitted(true)
     setSubmitting(false)

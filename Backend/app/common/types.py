@@ -7,6 +7,7 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
     STUDENT = "student"
     PARENT = "parent"
+    TEACHER = "teacher"
 
 
 class LessonStatus(str, enum.Enum):
@@ -26,7 +27,9 @@ class ConceptContentType(str, enum.Enum):
 class QuestionType(str, enum.Enum):
     MCQ = "mcq"
     MULTI_SELECT = "multi_select"
+    TRUE_FALSE = "true_false"
     SHORT_ANSWER = "short_answer"
+    NUMERIC = "numeric"
     FILL_BLANK = "fill_blank"
 
 
@@ -62,6 +65,14 @@ class EdgeRelationship(str, enum.Enum):
     REQUIRES = "requires"
     REINFORCES = "reinforces"
     CONTAINS = "contains"
+
+
+class AssessmentType(str, enum.Enum):
+    QUIZ = "quiz"
+    PRACTICE_TEST = "practice_test"
+    CHAPTER_TEST = "chapter_test"
+    DIAGNOSTIC = "diagnostic"
+    FINAL = "final"
 
 
 class PaceStatus(str, enum.Enum):

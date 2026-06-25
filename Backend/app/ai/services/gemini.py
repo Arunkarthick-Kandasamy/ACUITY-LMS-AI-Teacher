@@ -51,7 +51,13 @@ class GeminiService:
             )
             return response.text
         except Exception as e:
-            logger.error("Gemini API call failed: %s", e)
+            error_str = str(e).lower()
+            if "429" in error_str or "rate" in error_str or "quota" in error_str:
+                logger.warning("Gemini API rate limited (429), using fallback")
+            elif "500" in error_str or "503" in error_str:
+                logger.warning("Gemini API server error, using fallback")
+            else:
+                logger.error("Gemini API call failed: %s", e)
             return _mock_gemini_response(prompt, system_instruction)
 
     async def generate_json(
