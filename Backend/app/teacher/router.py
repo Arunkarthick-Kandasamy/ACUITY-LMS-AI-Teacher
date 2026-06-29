@@ -21,7 +21,7 @@ router = APIRouter(
 @router.get("/students")
 async def list_students(
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     students = await service.list_students(current_user)
@@ -32,7 +32,7 @@ async def list_students(
 async def get_student_progress(
     student_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     progress = await service.get_student_progress(current_user, student_id)
@@ -43,7 +43,7 @@ async def get_student_progress(
 async def get_student_mastery(
     student_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     mastery = await service.get_student_mastery(current_user, student_id)
@@ -54,7 +54,7 @@ async def get_student_mastery(
 async def get_student_misconceptions(
     student_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     misconceptions = await service.get_student_misconceptions(current_user, student_id)
@@ -67,7 +67,7 @@ async def get_student_sessions(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     offset = (page - 1) * per_page
@@ -84,7 +84,7 @@ async def get_student_attempts(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     offset = (page - 1) * per_page
@@ -98,7 +98,7 @@ async def get_student_attempts(
 @router.get("/courses")
 async def list_courses(
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     courses = await service.list_courses(current_user)
@@ -108,7 +108,7 @@ async def list_courses(
 @router.get("/dashboard")
 async def get_dashboard(
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.TEACHER, UserRole.COURSE_ADMIN, UserRole.ADMIN)),
 ) -> dict:
     service = TeacherService(session)
     dashboard = await service.get_dashboard(current_user)

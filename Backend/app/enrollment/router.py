@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_active_user, require_roles
+from app.common.exceptions import ForbiddenException
 from app.common.response import success_response
 from app.common.types import UserRole
 from app.config import settings
 from app.enrollment.schemas import EnrollmentCreate, EnrollmentListResponse, EnrollmentResponse
 from app.enrollment.service import EnrollmentService
 from app.infrastructure.database import get_session
+from app.teacher.repository import TeacherStudentAssignmentRepository
 from app.users.models import User
 
 router = APIRouter(prefix=f"{settings.api_prefix}", tags=["Enrollment"])
@@ -49,9 +51,10 @@ async def list_enrollments(
 ) -> dict:
     service = EnrollmentService(session)
     is_admin = current_user.role == UserRole.ADMIN
+    is_course_admin = current_user.role == UserRole.COURSE_ADMIN
 
     enrollments = await service.list_enrollments(
-        user_id=current_user.id, is_admin=is_admin, student_id=student_id
+        user_id=current_user.id, is_admin=is_admin, is_course_admin=is_course_admin, student_id=student_id
     )
     items = []
     for e in enrollments:
@@ -79,7 +82,8 @@ async def get_enrollment(
 ) -> dict:
     service = EnrollmentService(session)
     is_admin = current_user.role == UserRole.ADMIN
+    is_course_admin = current_user.role == UserRole.COURSE_ADMIN
     enrollment = await service.get_enrollment(
-        enrollment_id, user_id=current_user.id, is_admin=is_admin
+        enrollment_id, user_id=current_user.id, is_admin=is_admin, is_course_admin=is_course_admin
     )
     return success_response(_enrich_enrollment(enrollment))

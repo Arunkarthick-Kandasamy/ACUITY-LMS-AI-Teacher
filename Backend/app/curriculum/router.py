@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_active_user, require_roles
+from app.common.exceptions import ForbiddenException
 from app.common.response import paginated_response, success_response
 from app.common.types import UserRole
 from app.config import settings
@@ -50,11 +51,92 @@ from app.curriculum.schemas import (
 )
 from app.curriculum.service import CourseService
 from app.infrastructure.database import get_session
+from app.teacher.repository import TeacherCourseAssignmentRepository
 from app.users.models import User
 
 router = APIRouter(prefix=f"{settings.api_prefix}", tags=["Curriculum"])
 
 admin_only = require_roles(UserRole.ADMIN)
+course_admin_or_admin = require_roles(UserRole.COURSE_ADMIN, UserRole.ADMIN)
+
+
+async def _verify_course_access(
+    course_id: str,
+    current_user: User,
+    session: AsyncSession,
+) -> None:
+    if current_user.role == UserRole.ADMIN:
+        return
+    repo = TeacherCourseAssignmentRepository(session)
+    assignment = await repo.find_by_teacher_and_course(current_user.id, course_id)
+    if assignment is None:
+        raise ForbiddenException(message="You are not assigned to this course")
+
+
+async def _resolve_and_verify_access(
+    session: AsyncSession,
+    current_user: User,
+    entity_type: str,
+    entity_id: str,
+) -> None:
+    if current_user.role == UserRole.ADMIN:
+        return
+    if current_user.role != UserRole.COURSE_ADMIN:
+        raise ForbiddenException(message="Access denied")
+
+    course_id = None
+    if entity_type == "module":
+        from app.curriculum.repository import ModuleRepository
+        module = await ModuleRepository(session).get(entity_id)
+        if module:
+            course_id = module.course_id
+    elif entity_type == "lesson":
+        from app.curriculum.repository import LessonRepository, ModuleRepository as ModRepo
+        lesson = await LessonRepository(session).get(entity_id)
+        if lesson:
+            module = await ModRepo(session).get(lesson.module_id)
+            if module:
+                course_id = module.course_id
+    elif entity_type == "concept":
+        from app.curriculum.repository import ConceptRepository, LessonRepository as LesRepo, ModuleRepository as ModRepo2
+        concept = await ConceptRepository(session).get(entity_id)
+        if concept:
+            lesson = await LesRepo(session).get(concept.lesson_id)
+            if lesson:
+                module = await ModRepo2(session).get(lesson.module_id)
+                if module:
+                    course_id = module.course_id
+    elif entity_type in ("content", "exercise", "example"):
+        from app.curriculum.repository import (
+            ConceptContentRepository, ExerciseRepository, ExampleRepository,
+            ConceptRepository as ConRepo, LessonRepository as LesRepo2, ModuleRepository as ModRepo3,
+        )
+        repo_map = {
+            "content": ConceptContentRepository(session),
+            "exercise": ExerciseRepository(session),
+            "example": ExampleRepository(session),
+        }
+        entity = await repo_map[entity_type].get(entity_id)
+        if entity:
+            concept = await ConRepo(session).get(entity.concept_id)
+            if concept:
+                lesson = await LesRepo2(session).get(concept.lesson_id)
+                if lesson:
+                    module = await ModRepo3(session).get(lesson.module_id)
+                    if module:
+                        course_id = module.course_id
+    elif entity_type == "objective":
+        from app.curriculum.repository import LearningObjectiveRepository as ObjRepo, LessonRepository as LesRepo3, ModuleRepository as ModRepo4
+        obj = await ObjRepo(session).get(entity_id)
+        if obj:
+            lesson = await LesRepo3(session).get(obj.lesson_id)
+            if lesson:
+                module = await ModRepo4(session).get(lesson.module_id)
+                if module:
+                    course_id = module.course_id
+
+    if course_id:
+        await _verify_course_access(course_id, current_user, session)
 
 
 # -----------------------------------------------------------------------
@@ -102,7 +184,7 @@ async def get_catalog(
 async def create_course(
     body: CourseCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
     service = CourseService(session)
     course = await service.create_course(user_id=current_user.id, **body.model_dump())
@@ -192,8 +274,9 @@ async def update_course(
     course_id: str,
     body: CourseUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _verify_course_access(course_id, current_user, session)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     course = await service.update_course(course_id, **kwargs)
@@ -204,8 +287,9 @@ async def update_course(
 async def delete_course(
     course_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _verify_course_access(course_id, current_user, session)
     service = CourseService(session)
     await service.delete_course(course_id)
     return success_response(DeleteMessage(message="Course deleted successfully").model_dump())
@@ -216,8 +300,9 @@ async def publish_course(
     course_id: str,
     body: CoursePublishRequest,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _verify_course_access(course_id, current_user, session)
     service = CourseService(session)
     course = await service.publish_course(course_id, body.is_published)
     return success_response(
@@ -238,8 +323,9 @@ async def create_module(
     course_id: str,
     body: ModuleCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _verify_course_access(course_id, current_user, session)
     service = CourseService(session)
     module = await service.create_module(course_id, **body.model_dump())
     return success_response(ModuleResponse.model_validate(module).model_dump(mode="json"))
@@ -274,8 +360,9 @@ async def update_module(
     module_id: str,
     body: ModuleUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "module", module_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     module = await service.update_module(module_id, **kwargs)
@@ -286,8 +373,9 @@ async def update_module(
 async def delete_module(
     module_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "module", module_id)
     service = CourseService(session)
     await service.delete_module(module_id)
     return success_response(DeleteMessage(message="Module deleted successfully").model_dump())
@@ -302,8 +390,9 @@ async def create_lesson(
     module_id: str,
     body: LessonCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "module", module_id)
     service = CourseService(session)
     lesson = await service.create_lesson(module_id, **body.model_dump())
     return success_response(LessonResponse.model_validate(lesson).model_dump(mode="json"))
@@ -372,8 +461,9 @@ async def update_lesson(
     lesson_id: str,
     body: LessonUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "lesson", lesson_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     lesson = await service.update_lesson(lesson_id, **kwargs)
@@ -384,8 +474,9 @@ async def update_lesson(
 async def delete_lesson(
     lesson_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "lesson", lesson_id)
     service = CourseService(session)
     await service.delete_lesson(lesson_id)
     return success_response(DeleteMessage(message="Lesson deleted successfully").model_dump())
@@ -400,8 +491,9 @@ async def create_concept(
     lesson_id: str,
     body: ConceptCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "lesson", lesson_id)
     service = CourseService(session)
     concept = await service.create_concept(lesson_id, **body.model_dump())
     return success_response(ConceptResponse.model_validate(concept).model_dump(mode="json"))
@@ -477,8 +569,9 @@ async def update_concept(
     concept_id: str,
     body: ConceptUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "concept", concept_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     concept = await service.update_concept(concept_id, **kwargs)
@@ -489,8 +582,9 @@ async def update_concept(
 async def delete_concept(
     concept_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "concept", concept_id)
     service = CourseService(session)
     await service.delete_concept(concept_id)
     return success_response(DeleteMessage(message="Concept deleted successfully").model_dump())
@@ -505,8 +599,9 @@ async def create_content(
     concept_id: str,
     body: ConceptContentCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "concept", concept_id)
     service = CourseService(session)
     content = await service.create_content(concept_id, **body.model_dump())
     return success_response(ConceptContentResponse.model_validate(content).model_dump(mode="json"))
@@ -531,8 +626,9 @@ async def update_content(
     content_id: str,
     body: ConceptContentCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "content", content_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     content = await service.update_content(content_id, **kwargs)
@@ -543,8 +639,9 @@ async def update_content(
 async def delete_content(
     content_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "content", content_id)
     service = CourseService(session)
     await service.delete_content(content_id)
     return success_response(DeleteMessage(message="Content deleted successfully").model_dump())
@@ -559,8 +656,9 @@ async def create_exercise(
     concept_id: str,
     body: ExerciseCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "concept", concept_id)
     service = CourseService(session)
     exercise = await service.create_exercise(concept_id, **body.model_dump())
     return success_response(ExerciseResponse.model_validate(exercise).model_dump(mode="json"))
@@ -593,8 +691,9 @@ async def update_exercise(
     exercise_id: str,
     body: ExerciseUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "exercise", exercise_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     exercise = await service.update_exercise(exercise_id, **kwargs)
@@ -605,8 +704,9 @@ async def update_exercise(
 async def delete_exercise(
     exercise_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "exercise", exercise_id)
     service = CourseService(session)
     await service.delete_exercise(exercise_id)
     return success_response(DeleteMessage(message="Exercise deleted successfully").model_dump())
@@ -621,8 +721,9 @@ async def create_example(
     concept_id: str,
     body: ExampleCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "concept", concept_id)
     service = CourseService(session)
     example = await service.create_example(concept_id, **body.model_dump())
     return success_response(ExampleResponse.model_validate(example).model_dump(mode="json"))
@@ -652,8 +753,9 @@ async def update_example(
     example_id: str,
     body: ExampleUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "example", example_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     example = await service.update_example(example_id, **kwargs)
@@ -664,8 +766,9 @@ async def update_example(
 async def delete_example(
     example_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "example", example_id)
     service = CourseService(session)
     await service.delete_example(example_id)
     return success_response(DeleteMessage(message="Example deleted successfully").model_dump())
@@ -680,8 +783,9 @@ async def create_objective(
     lesson_id: str,
     body: LearningObjectiveCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "lesson", lesson_id)
     service = CourseService(session)
     objective = await service.create_objective(lesson_id, **body.model_dump())
     return success_response(
@@ -709,8 +813,9 @@ async def update_objective(
     objective_id: str,
     body: LearningObjectiveUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "objective", objective_id)
     service = CourseService(session)
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     objective = await service.update_objective(objective_id, **kwargs)
@@ -723,8 +828,9 @@ async def update_objective(
 async def delete_objective(
     objective_id: str,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(admin_only),
+    current_user: User = Depends(course_admin_or_admin),
 ) -> dict:
+    await _resolve_and_verify_access(session, current_user, "objective", objective_id)
     service = CourseService(session)
     await service.delete_objective(objective_id)
     return success_response(DeleteMessage(message="Objective deleted successfully").model_dump())

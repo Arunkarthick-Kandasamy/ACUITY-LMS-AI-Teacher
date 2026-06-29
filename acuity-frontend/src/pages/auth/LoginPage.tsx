@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff, ArrowRight, Sparkles, CheckCircle2, BookOpen, Users, School, ChevronLeft } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, Sparkles, CheckCircle2, BookOpen, Users, School, GraduationCap, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { authStore, type UserRole } from '@/store/authStore'
 import { ApiError } from '@/services/api'
+
+const roleToPath: Record<string, string> = {
+  student: '/student/dashboard',
+  parent: '/parent/dashboard',
+  admin: '/admin/dashboard',
+  course_admin: '/course-admin/dashboard',
+  teacher: '/teacher/dashboard',
+}
 
 const roles: { value: UserRole; label: string; icon: typeof BookOpen; desc: string }[] = [
   { value: 'student', label: 'Student', icon: BookOpen, desc: 'Learn with AI' },
   { value: 'parent', label: 'Parent', icon: Users, desc: 'Track progress' },
   { value: 'admin', label: 'Admin', icon: School, desc: 'Manage system' },
+  { value: 'course_admin', label: 'Course Admin', icon: GraduationCap, desc: 'Manage courses' },
 ]
 
 export function LoginPage() {
@@ -30,11 +39,12 @@ export function LoginPage() {
     try {
       if (isRegister) {
         await authStore.register(email, password, name, selectedRole)
-        await authStore.login(email, password)
+        await authStore.login(email, password, selectedRole)
       } else {
-        await authStore.login(email, password)
+        await authStore.login(email, password, selectedRole)
       }
-      navigate(`/${selectedRole}/dashboard`)
+      const user = authStore.user
+      navigate(roleToPath[user?.role || selectedRole] || '/')
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)
@@ -120,7 +130,7 @@ export function LoginPage() {
             {/* Role selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">I am a</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {roles.map((role) => {
                   const Icon = role.icon
                   const active = selectedRole === role.value

@@ -10,6 +10,7 @@ const roleToDashboard: Record<string, string> = {
   student: '/student/dashboard',
   parent: '/parent/dashboard',
   admin: '/admin/dashboard',
+  course_admin: '/course-admin/dashboard',
   teacher: '/teacher/dashboard',
 }
 

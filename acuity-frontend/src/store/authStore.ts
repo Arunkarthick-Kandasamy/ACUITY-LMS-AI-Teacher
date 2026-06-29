@@ -28,8 +28,8 @@ const authStore = {
     return !!(currentUser && getAccessToken())
   },
 
-  async login(email: string, password: string) {
-    const data = await authService.login(email, password)
+  async login(email: string, password: string, role: UserRole) {
+    const data = await authService.login(email, password, role)
     currentUser = data.user
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user))
     notify()

@@ -16,6 +16,7 @@ import app.assessments.models  # noqa: F401
 # Ensure all models are registered with the Base metadata
 import app.audit.models  # noqa: F401
 import app.content_ingestion.models  # noqa: F401
+import app.course_admin.models  # noqa: F401
 import app.curriculum.models  # noqa: F401
 import app.diagnosis.models  # noqa: F401
 import app.enrollment.models  # noqa: F401

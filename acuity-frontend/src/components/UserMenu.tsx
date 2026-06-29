@@ -48,11 +48,11 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate('/student/profile')}>
+          <DropdownMenuItem onClick={() => navigate(`/${user?.role || 'student'}/profile`)}>
             <User className="h-4 w-4" />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/student/settings')}>
+          <DropdownMenuItem onClick={() => navigate(`/${user?.role || 'student'}/settings`)}>
             <Settings className="h-4 w-4" />
             Settings
           </DropdownMenuItem>

@@ -1,10 +1,10 @@
 import { apiRequest, setTokens, clearTokens } from './api'
 import type { ApiResponse, AuthTokens, LoginResponse, User, UserRole } from './types'
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string, role: UserRole): Promise<LoginResponse> {
   const json = await apiRequest<LoginResponse>('/api/v1/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, role }),
   })
   setTokens(json.data.access_token, json.data.refresh_token)
   return json.data

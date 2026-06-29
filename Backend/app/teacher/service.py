@@ -63,6 +63,9 @@ class TeacherService:
             )
         return link.student
 
+    async def _is_scoped(self, user: User) -> bool:
+        return user.role in (UserRole.TEACHER, UserRole.COURSE_ADMIN)
+
     async def list_students(self, current_user: User) -> list[TeacherStudentResponse]:
         if current_user.role == UserRole.ADMIN:
             profiles = await self.student_profile_repo.find()

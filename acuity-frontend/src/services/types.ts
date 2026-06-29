@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'student' | 'parent' | 'teacher'
+export type UserRole = 'admin' | 'course_admin' | 'student' | 'parent' | 'teacher'
 
 export interface User {
   user_id: string
@@ -537,3 +537,109 @@ export interface DashboardAnalyticsResponse {
   overall_pass_rate: number
   overall_completion_rate: number
 }
+
+// -----------------------------------------------------------------------
+// Course (Course Admin) types
+// -----------------------------------------------------------------------
+
+export interface StageLogEntry {
+  ts: string
+  message: string
+  level: string
+}
+
+export interface StageProgress {
+  completed: number
+  total: number
+  pct: number
+}
+
+export interface CourseBrief {
+  id: string
+  name: string
+  description?: string
+  status: string
+  course_id?: string
+  stage_progress?: StageProgress
+  created_at: string
+  updated_at: string
+}
+
+export interface PipelineStageInfo {
+  id: string
+  stage_name: string
+  status: string
+  progress_pct: number
+  error_message?: string
+  output_data?: Record<string, unknown>
+  stage_logs: StageLogEntry[]
+  retry_count: number
+  started_at?: string
+  completed_at?: string
+  duration_seconds?: number
+  created_at: string
+}
+
+export interface KnowledgeSourceInfo {
+  id: string
+  filename: string
+  file_type: string
+  file_size: number
+  status: string
+  error_message?: string
+  created_at: string
+}
+
+export interface CourseDetail {
+  id: string
+  name: string
+  description?: string
+  status: string
+  course_id?: string
+  stage_progress?: StageProgress
+  knowledge_sources: KnowledgeSourceInfo[]
+  knowledge_graph_data?: Record<string, unknown>
+  teaching_profile?: Record<string, unknown>
+  course_structure?: Record<string, unknown>
+  simulation_results?: Record<string, unknown>
+  error_message?: string
+  stages: PipelineStageInfo[]
+  created_at: string
+  updated_at: string
+}
+
+export interface DashboardStats {
+  total_courses: number
+  deployed_count: number
+  training_count: number
+  draft_count: number
+  review_count: number
+  total_students: number
+  total_published: number
+  active_sessions: number
+  pending_review_count: number
+  failed_stages_count: number
+  total_concepts_generated: number
+  total_exercises_generated: number
+  avg_coverage_pct: number
+  recent_courses: CourseBrief[]
+}
+
+export const STAGE_LABELS: Record<string, string> = {
+  upload: 'Upload Knowledge Source',
+  extract: 'Extract Text Content',
+  understand: 'AI Understands & Builds Knowledge Graph',
+  validate: 'Validate Understanding',
+  profile: 'Generate Teaching Profile',
+  structure: 'Generate Course Structure',
+  generate: 'Generate Lesson Content & Assessments',
+  review: 'Review & Refine',
+  simulate: 'Simulation & Testing',
+  deploy: 'Deploy & Publish',
+}
+
+export const STAGE_ORDER = [
+  'upload', 'extract', 'understand', 'validate',
+  'profile', 'structure', 'generate',
+  'review', 'simulate', 'deploy',
+]

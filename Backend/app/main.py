@@ -18,6 +18,7 @@ from app.common.context import request_id_var
 from app.common.exceptions import AppException
 from app.config import settings
 from app.content_ingestion.router import router as content_ingestion_router
+from app.course_admin.router import router as course_admin_router
 from app.curriculum.router import router as curriculum_router
 from app.enrollment.router import router as enrollment_router
 from app.gamification.router import router as gamification_router
@@ -151,6 +152,7 @@ app.include_router(ai_router)
 app.include_router(ai_evaluation_router)
 app.include_router(parent_dashboard_router)
 app.include_router(content_ingestion_router)
+app.include_router(course_admin_router)
 app.include_router(reports_router)
 app.include_router(assessments_router)
 app.include_router(analytics_router)

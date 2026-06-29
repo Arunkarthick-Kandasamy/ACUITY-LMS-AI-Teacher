@@ -20,6 +20,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+    role: UserRole
 
 
 class UserResponse(BaseModel):

@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.exceptions import ConflictException, NotFoundException, ValidationException
+from app.common.exceptions import ConflictException, ForbiddenException, NotFoundException, ValidationException
 from app.common.types import EnrollmentStatus, PaceStatus
 from app.curriculum.models import Course
 from app.enrollment.models import StudentCourseEnrollment
@@ -77,26 +77,39 @@ class EnrollmentService:
         return enrollment
 
     async def list_enrollments(
-        self, user_id: str, is_admin: bool = False, student_id: str | None = None
+        self, user_id: str, is_admin: bool = False, is_course_admin: bool = False, student_id: str | None = None
     ) -> list[StudentCourseEnrollment]:
-        if is_admin and student_id:
+        if (is_admin or is_course_admin) and student_id:
             profile = await self.student_profile_repo.get(student_id)
             if profile is None:
                 raise NotFoundException(message="Student profile not found")
+            if is_course_admin:
+                from app.teacher.repository import TeacherStudentAssignmentRepository
+                repo = TeacherStudentAssignmentRepository(self.session)
+                link = await repo.find_by_teacher_and_student(user_id, profile.id)
+                if link is None:
+                    raise ForbiddenException(message="You are not assigned to this student")
             return await self.enrollment_repo.find_by_student(profile.id)
         profile = await self._get_student_profile(user_id)
         return await self.enrollment_repo.find_by_student(profile.id)
 
     async def get_enrollment(
-        self, enrollment_id: str, user_id: str, is_admin: bool = False
+        self, enrollment_id: str, user_id: str, is_admin: bool = False, is_course_admin: bool = False
     ) -> StudentCourseEnrollment:
         enrollment = await self.enrollment_repo.get(enrollment_id)
         if enrollment is None:
             raise NotFoundException(message="Enrollment not found")
 
         if not is_admin:
-            profile = await self._get_student_profile(user_id)
-            if enrollment.student_id != profile.id:
-                raise NotFoundException(message="Enrollment not found")
+            if is_course_admin:
+                from app.teacher.repository import TeacherStudentAssignmentRepository
+                repo = TeacherStudentAssignmentRepository(self.session)
+                link = await repo.find_by_teacher_and_student(user_id, enrollment.student_id)
+                if link is None:
+                    raise NotFoundException(message="Enrollment not found")
+            else:
+                profile = await self._get_student_profile(user_id)
+                if enrollment.student_id != profile.id:
+                    raise NotFoundException(message="Enrollment not found")
 
         return enrollment

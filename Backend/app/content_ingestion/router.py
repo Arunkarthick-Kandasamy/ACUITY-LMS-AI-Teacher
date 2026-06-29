@@ -20,7 +20,7 @@ from app.users.models import User
 
 router = APIRouter(prefix=f"{settings.api_prefix}/content", tags=["Content Ingestion"])
 
-teacher_admin = require_roles(UserRole.ADMIN)
+teacher_admin = require_roles(UserRole.ADMIN, UserRole.COURSE_ADMIN)
 
 
 async def _draft_to_response(draft) -> dict:

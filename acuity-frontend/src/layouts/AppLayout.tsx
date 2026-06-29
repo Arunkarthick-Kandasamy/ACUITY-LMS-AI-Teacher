@@ -57,6 +57,17 @@ const sidebarConfig = {
       { label: 'Subscription', path: '/teacher/subscription', icon: CreditCard },
     ],
   },
+  course_admin: {
+    title: 'Acuity',
+    items: [
+      { label: 'Dashboard', path: '/course-admin/dashboard', icon: LayoutDashboard },
+      { label: 'Courses', path: '/course-admin/courses', icon: GraduationCap },
+      { label: 'Create Course', path: '/course-admin/create', icon: Upload },
+      { label: 'Students', path: '/course-admin/students', icon: User },
+      { label: 'Messages', path: '/course-admin/messages', icon: MessageSquare },
+      { label: 'Subscription', path: '/course-admin/subscription', icon: CreditCard },
+    ],
+  },
 }
 
 function SidebarNav({

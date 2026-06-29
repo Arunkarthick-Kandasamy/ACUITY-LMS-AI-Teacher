@@ -10,6 +10,11 @@ import { ParentAccessPage } from '@/pages/student/ParentAccessPage'
 import { LinkStudentPage } from '@/pages/parent/LinkStudentPage'
 import { KnowledgeGraphPage } from '@/pages/admin/KnowledgeGraphPage'
 import { ContentUploadPage } from '@/pages/teacher/ContentUploadPage'
+import { CourseAdminDashboard } from '@/pages/course_admin/CourseAdminDashboard'
+import { Courses } from '@/pages/course_admin/Courses'
+import { CreateCourse } from '@/pages/course_admin/CreateCourse'
+import { CourseDetail } from '@/pages/course_admin/CourseDetail'
+import { ReviewWorkspace } from '@/pages/course_admin/ReviewWorkspace'
 import { AppLayout } from '@/layouts/AppLayout'
 import { StudentDashboard } from '@/pages/student/StudentDashboard'
 import { LearningPathPage } from '@/pages/student/LearningPathPage'
@@ -54,6 +59,10 @@ function AdminLayout() {
 
 function TeacherLayout() {
   return <AppLayout role="teacher"><Outlet /></AppLayout>
+}
+
+function CourseAdminLayout() {
+  return <AppLayout role="course_admin"><Outlet /></AppLayout>
 }
 
 export const router = createBrowserRouter([
@@ -124,6 +133,24 @@ export const router = createBrowserRouter([
         { path: '/teacher/upload', element: <ContentUploadPage /> },
         { path: '/teacher/messages', element: <MessagesPage /> },
         { path: '/teacher/subscription', element: <SubscriptionPage /> },
+      ],
+    }],
+  },
+  {
+    element: <ProtectedRoute allowedRoles={['course_admin', 'admin']} />,
+    children: [{
+      element: <CourseAdminLayout />,
+      children: [
+        { path: '/course-admin/dashboard', element: <CourseAdminDashboard /> },
+        { path: '/course-admin/courses', element: <Courses /> },
+        { path: '/course-admin/create', element: <CreateCourse /> },
+        { path: '/course-admin/courses/:id', element: <CourseDetail /> },
+        { path: '/course-admin/courses/:id/review', element: <ReviewWorkspace /> },
+        { path: '/course-admin/students', element: <TeacherStudentsPage /> },
+        { path: '/course-admin/students/:id', element: <TeacherStudentDetail /> },
+        { path: '/course-admin/courses', element: <TeacherCoursesPage /> },
+        { path: '/course-admin/messages', element: <MessagesPage /> },
+        { path: '/course-admin/subscription', element: <SubscriptionPage /> },
       ],
     }],
   },

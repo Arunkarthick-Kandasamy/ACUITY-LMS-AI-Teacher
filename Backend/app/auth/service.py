@@ -173,7 +173,7 @@ class AuthService:
 
         return "If the email exists, a verification link has been sent"
 
-    async def login(self, email: str, password: str) -> tuple[str, str, User]:
+    async def login(self, email: str, password: str, role: UserRole) -> tuple[str, str, User]:
         user = await self.user_repo.get_by_email(email)
         if user is None:
             raise UnauthorizedException(
@@ -189,6 +189,12 @@ class AuthService:
             raise ForbiddenException(
                 message="Account is deactivated. Contact an administrator.",
                 code="ACCOUNT_INACTIVE",
+            )
+
+        if user.role != role:
+            raise ForbiddenException(
+                message=f"You are not authorized to login as {role.value}.",
+                code="ROLE_MISMATCH",
             )
 
         jti = str(uuid.uuid4())

@@ -118,7 +118,7 @@ async def login(
 ) -> dict:
     service = AuthService(session)
     access_token, refresh_token, user = await service.login(
-        email=body.email, password=body.password
+        email=body.email, password=body.password, role=body.role
     )
     return {
         "status": "success",
