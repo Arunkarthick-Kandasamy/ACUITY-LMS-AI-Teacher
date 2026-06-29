@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
-from app.common.compat import JSONB
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
+from app.common.compat import JSONB
 
 
 class GraphTrace(UUIDMixin, TimestampMixin, Base):

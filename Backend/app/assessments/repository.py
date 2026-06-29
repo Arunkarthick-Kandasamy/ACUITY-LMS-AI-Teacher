@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from app.common.repository import Repository
 from app.assessments.models import (
     Assessment,
     AssessmentAttempt,
@@ -10,6 +9,7 @@ from app.assessments.models import (
     AssessmentResponse,
     QuestionBank,
 )
+from app.common.repository import Repository
 
 
 class AssessmentRepository(Repository[Assessment]):

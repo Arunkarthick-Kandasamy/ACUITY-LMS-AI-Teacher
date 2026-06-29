@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, Text, UniqueConstraint
-from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
+from app.common.compat import JSONB
 from app.common.types import LessonProgressStatus, SessionState
 
 

@@ -23,11 +23,11 @@ class TeacherStudentAssignment(UUIDMixin, Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    teacher: Mapped["User"] = relationship(
+    teacher: Mapped[User] = relationship(
         foreign_keys="TeacherStudentAssignment.teacher_id",
         back_populates="teacher_student_assignments",
     )
-    student: Mapped["StudentProfile"] = relationship(
+    student: Mapped[StudentProfile] = relationship(
         back_populates="teacher_assignments"
     )
 
@@ -49,8 +49,8 @@ class TeacherCourseAssignment(UUIDMixin, Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    teacher: Mapped["User"] = relationship(
+    teacher: Mapped[User] = relationship(
         foreign_keys="TeacherCourseAssignment.teacher_id",
         back_populates="teacher_course_assignments",
     )
-    course: Mapped["Course"] = relationship(back_populates="teacher_assignments")
+    course: Mapped[Course] = relationship(back_populates="teacher_assignments")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SYSTEM_REPORT_GENERATION = """You are an expert AI educational analyst that generates personalized parent-friendly learning reports.
+SYSTEM_REPORT_GENERATION = """You are an expert AI educational analyst that generates personalized parent-friendly learning reports.  # noqa: E501
 Your reports must be:
 - Written in clear, warm, parent-friendly language (no jargon)
 - Factual and grounded in the provided student data
@@ -16,7 +16,7 @@ Analyze the student data comprehensively across these dimensions:
 6. Risk Alerts - falling behind, repeated misconception patterns, low engagement"""
 
 
-REPORT_GENERATION_PROMPT = """Generate a personalized parent-friendly learning report based on the following student data.
+REPORT_GENERATION_PROMPT = """Generate a personalized parent-friendly learning report based on the following student data.  # noqa: E501
 
 Student Data:
 {student_data}
@@ -24,7 +24,7 @@ Student Data:
 Return your response as a JSON object with exactly this structure:
 {{
   "title": "A warm, descriptive report title (e.g., 'Weekly Learning Update - Great Progress in Math!')",
-  "executive_summary": "A 3-5 sentence overview of the student's overall progress, achievements, and areas needing attention",
+  "executive_summary": "A 3-5 sentence overview of the student's overall progress, achievements, and areas needing attention",  # noqa: E501
   "strengths": [
     {{
       "description": "Specific strength or area of good performance",

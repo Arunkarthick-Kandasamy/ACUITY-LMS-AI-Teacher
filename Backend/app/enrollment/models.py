@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import date
 
 from sqlalchemy import Date, DateTime, ForeignKey, UniqueConstraint
-from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
+from app.common.compat import JSONB
 from app.common.types import EnrollmentStatus, PaceStatus
 
 

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_active_user
-from app.common.guardrails import validate_content, validate_response
 from app.common.response import success_response
 from app.config import settings
 from app.evaluation.models import GraphTrace, TeacherMetricsSnapshot
@@ -61,7 +59,7 @@ async def get_evaluation_metrics(
             traces_result = await db.execute(traces_stmt)
             traces = traces_result.unique().scalars().all()
             metrics = compute_metrics(traces)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to compute evaluation metrics")
         raise HTTPException(status_code=500, detail="Failed to compute evaluation metrics")
 
@@ -94,7 +92,7 @@ async def get_evaluation_traces(
         records = result.unique().scalars().all()
 
         traces = [summarize_trace_db(r) for r in records]
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to fetch evaluation traces")
         raise HTTPException(status_code=500, detail="Failed to fetch evaluation traces")
 
@@ -126,7 +124,7 @@ async def list_scenarios(
             }
             for s in SCENARIOS
         ]
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to list scenarios")
         raise HTTPException(status_code=500, detail="Failed to list scenarios")
 

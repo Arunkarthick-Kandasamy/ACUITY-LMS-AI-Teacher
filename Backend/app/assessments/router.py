@@ -8,18 +8,12 @@ from app.assessments.schemas import (
     AssessmentDetail,
     AssessmentResponse,
     AssessmentUpdate,
-    AttemptHistoryItem,
-    AttemptResultResponse,
-    AttemptStartResponse,
-    QuestionAnswer,
     QuestionBankCreate,
     QuestionBankResponse,
     QuestionCreate,
-    QuestionPublic,
     QuestionResponse,
     QuestionUpdate,
     SubmitRequest,
-    SubmitResponse,
 )
 from app.assessments.service import AssessmentService
 from app.auth.dependencies import get_current_active_user, require_roles

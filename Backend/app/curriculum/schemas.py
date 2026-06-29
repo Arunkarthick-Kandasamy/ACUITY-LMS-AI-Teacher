@@ -54,6 +54,21 @@ class CourseListResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class CatalogCourseResponse(BaseModel):
+    course_id: str
+    code: str
+    title: str
+    description: str | None
+    teacher_name: str | None = None
+    total_duration_hours: int
+    default_deadline_days: int
+    module_count: int = 0
+    lesson_count: int = 0
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class CoursePublishRequest(BaseModel):
     is_published: bool
 

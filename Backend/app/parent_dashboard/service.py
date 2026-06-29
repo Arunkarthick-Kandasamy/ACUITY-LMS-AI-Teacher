@@ -1,41 +1,48 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.common.exceptions import ForbiddenException, NotFoundException
-from app.common.types import EnrollmentStatus, LessonProgressStatus, UserRole
+from app.common.exceptions import ConflictException, ForbiddenException, NotFoundException, ValidationException
+from app.common.types import LessonProgressStatus, UserRole
 from app.curriculum.models import Concept, Course, Lesson, Module
-from app.enrollment.models import CourseSchedule, StudentCourseEnrollment
 from app.enrollment.repository import CourseScheduleRepository, EnrollmentRepository
-from app.mastery.models import MasteryRecord
 from app.mastery.repository import MasteryRecordRepository
 from app.progress.repository import LessonProgressRepository
-from app.teaching.models import Attempt, LessonProgress, TeachingSession
-from app.users.models import ParentStudentLink, StudentProfile, User
+from app.teaching.models import Attempt
+from app.users.models import ParentStudentLink, StudentLinkingCode, StudentProfile, User
 from app.users.repository import StudentProfileRepository, UserRepository
 
 from .repository import (
+    LinkAuditLogRepository,
     MisconceptionRepository,
     ParentStudentLinkRepository,
     ParentTeachingSessionRepository,
+    StudentLinkingCodeRepository,
 )
 from .schemas import (
+    ApproveLinkResponse,
+    AuditLogEntry,
     CurriculumNode,
     CurriculumTreeResponse,
     DashboardResponse,
     KnowledgeGapResponse,
+    LinkingCodeResponse,
+    LinkStudentResponse,
     MasteryConceptResponse,
     MasterySummaryResponse,
     MisconceptionResponse,
     PacingStatusResponse,
     ParentStudentResponse,
+    PendingLinkRequest,
     ProgressSummaryResponse,
     RecentActivityItem,
+    RejectLinkResponse,
     StudentProfileResponse,
     TeachingSessionResponse,
 )
@@ -45,6 +52,8 @@ class ParentDashboardService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.parent_link_repo = ParentStudentLinkRepository(session)
+        self.linking_code_repo = StudentLinkingCodeRepository(session)
+        self.audit_log_repo = LinkAuditLogRepository(session)
         self.student_profile_repo = StudentProfileRepository(session)
         self.user_repo = UserRepository(session)
         self.mastery_repo = MasteryRecordRepository(session)
@@ -53,6 +62,228 @@ class ParentDashboardService:
         self.schedule_repo = CourseScheduleRepository(session)
         self.misconception_repo = MisconceptionRepository(session)
         self.session_repo = ParentTeachingSessionRepository(session)
+
+    async def generate_linking_code(self, current_user: User) -> LinkingCodeResponse:
+        if current_user.role != UserRole.STUDENT:
+            raise ForbiddenException(message="Only students can generate linking codes")
+        profile = await self.student_profile_repo.get_by_user_id(current_user.id)
+        if profile is None:
+            raise NotFoundException(message="Student profile not found")
+
+        # Reuse existing valid code
+        existing = await self.linking_code_repo.find_recent_by_student(profile.id)
+        if existing:
+            return LinkingCodeResponse(
+                code=existing.code,
+                expires_at=existing.expires_at,
+            )
+
+        now = datetime.now(timezone.utc)
+
+        code = secrets.token_hex(4).upper()
+        expires_at = now + timedelta(hours=48)
+        linking_code = StudentLinkingCode(
+            student_id=profile.id,
+            code=code,
+            expires_at=expires_at,
+        )
+        self.session.add(linking_code)
+
+        await self.audit_log_repo.log(
+            action="code_generated",
+            actor_id=current_user.id,
+            student_id=profile.id,
+        )
+
+        await self.session.flush()
+        return LinkingCodeResponse(code=code, expires_at=expires_at)
+
+    async def link_student(
+        self, current_user: User, code: str, parent_email: str | None = None
+    ) -> LinkStudentResponse:
+        if current_user.role != UserRole.PARENT:
+            raise ForbiddenException(message="Only parents can link to students")
+
+        linking_code = await self.linking_code_repo.find_valid_by_code(code)
+        if linking_code is None:
+            raise ValidationException(message="Invalid or expired linking code")
+
+        profile = linking_code.student
+
+        # Check for existing active link
+        existing_link = await self.parent_link_repo.find_active_by_parent_and_student(
+            current_user.id, profile.id
+        )
+        if existing_link:
+            raise ConflictException(message="You are already linked to this student")
+
+        # Check for existing pending link
+        pending_link = await self.parent_link_repo.find_by_parent_and_student(
+            current_user.id, profile.id
+        )
+        if pending_link and pending_link.status == "pending":
+            raise ConflictException(message="You already have a pending link request for this student")
+        if pending_link and pending_link.status == "rejected":
+            raise ValidationException(message="Your previous link request was rejected. Contact the student to generate a new code.")
+
+        # Max 2 active parents per student
+        active_count = await self.parent_link_repo.count_by_student(profile.id, status="active")
+        if active_count >= 2:
+            raise ValidationException(message="This student already has the maximum of 2 linked parents")
+
+        now = datetime.now(timezone.utc)
+
+        link = ParentStudentLink(
+            parent_id=current_user.id,
+            student_id=profile.id,
+            status="pending",
+            parent_email=parent_email,
+            requested_at=now,
+        )
+        self.session.add(link)
+        linking_code.used_at = now
+        await self.session.flush()
+
+        await self.audit_log_repo.log(
+            action="link_requested",
+            actor_id=current_user.id,
+            student_id=profile.id,
+            parent_id=current_user.id,
+            parent_email=parent_email,
+        )
+
+        user = await self.user_repo.get(profile.user_id)
+        return LinkStudentResponse(
+            link_id=link.id,
+            student_id=profile.id,
+            full_name=user.full_name if user else "Unknown",
+            status="pending",
+            message="Link request sent to student. Waiting for their approval.",
+        )
+
+    async def get_pending_requests(self, current_user: User) -> list[PendingLinkRequest]:
+        if current_user.role != UserRole.STUDENT:
+            raise ForbiddenException(message="Only students can view pending link requests")
+        profile = await self.student_profile_repo.get_by_user_id(current_user.id)
+        if profile is None:
+            raise NotFoundException(message="Student profile not found")
+
+        pending_links = await self.parent_link_repo.find_pending_by_student(profile.id)
+        result = []
+        for link in pending_links:
+            parent = await self.user_repo.get(link.parent_id)
+            result.append(
+                PendingLinkRequest(
+                    link_id=link.id,
+                    parent_email=link.parent_email,
+                    parent_name=parent.full_name if parent else "Unknown",
+                    parent_id=link.parent_id,
+                    requested_at=link.requested_at,
+                )
+            )
+        return result
+
+    async def approve_link(self, current_user: User, link_id: str) -> ApproveLinkResponse:
+        if current_user.role != UserRole.STUDENT:
+            raise ForbiddenException(message="Only students can approve link requests")
+        profile = await self.student_profile_repo.get_by_user_id(current_user.id)
+        if profile is None:
+            raise NotFoundException(message="Student profile not found")
+
+        link = await self.parent_link_repo.get(link_id)
+        if link is None:
+            raise NotFoundException(message="Link request not found")
+        if link.student_id != profile.id:
+            raise ForbiddenException(message="This link request is not for your account")
+        if link.status != "pending":
+            raise ValidationException(message=f"This request is already {link.status}")
+
+        updated = await self.parent_link_repo.approve(link_id)
+        if updated is None:
+            raise NotFoundException(message="Link request not found or already processed")
+
+        await self.audit_log_repo.log(
+            action="link_approved",
+            actor_id=current_user.id,
+            student_id=profile.id,
+            parent_id=link.parent_id,
+            parent_email=link.parent_email,
+        )
+
+        return ApproveLinkResponse(
+            link_id=link.id,
+            student_id=profile.id,
+            status="active",
+            message="Link request approved successfully",
+        )
+
+    async def reject_link(self, current_user: User, link_id: str) -> RejectLinkResponse:
+        if current_user.role != UserRole.STUDENT:
+            raise ForbiddenException(message="Only students can reject link requests")
+        profile = await self.student_profile_repo.get_by_user_id(current_user.id)
+        if profile is None:
+            raise NotFoundException(message="Student profile not found")
+
+        link = await self.parent_link_repo.get(link_id)
+        if link is None:
+            raise NotFoundException(message="Link request not found")
+        if link.student_id != profile.id:
+            raise ForbiddenException(message="This link request is not for your account")
+        if link.status != "pending":
+            raise ValidationException(message=f"This request is already {link.status}")
+
+        updated = await self.parent_link_repo.reject(link_id)
+        if updated is None:
+            raise NotFoundException(message="Link request not found or already processed")
+
+        await self.audit_log_repo.log(
+            action="link_rejected",
+            actor_id=current_user.id,
+            student_id=profile.id,
+            parent_id=link.parent_id,
+            parent_email=link.parent_email,
+        )
+
+        return RejectLinkResponse(
+            link_id=link.id,
+            status="rejected",
+            message="Link request rejected",
+        )
+
+    async def get_audit_log(
+        self, current_user: User, student_id: str
+    ) -> list[AuditLogEntry]:
+        profile = await self._verify_parent_access(current_user, student_id)
+        entries = await self.audit_log_repo.find_by_student(profile.id)
+        return [
+            AuditLogEntry(
+                id=e.id,
+                action=e.action,
+                actor_id=e.actor_id,
+                student_id=e.student_id,
+                parent_id=e.parent_id,
+                parent_email=e.parent_email,
+                details=e.details,
+                created_at=e.created_at,
+            )
+            for e in entries
+        ]
+
+    async def unlink_student(self, current_user: User, student_id: str) -> None:
+        link = await self.parent_link_repo.find_active_by_parent_and_student(
+            current_user.id, student_id
+        )
+        if link is None:
+            raise NotFoundException(message="You are not linked to this student")
+
+        await self.audit_log_repo.log(
+            action="link_unlinked",
+            actor_id=current_user.id,
+            student_id=student_id,
+            parent_id=current_user.id,
+        )
+
+        await self.parent_link_repo.delete(link.id)
 
     async def _verify_parent_access(
         self, current_user: User, student_id: str
@@ -68,7 +299,7 @@ class ParentDashboardService:
                 message="Only parents and admins can access student data"
             )
 
-        link = await self.parent_link_repo.find_by_parent_and_student(
+        link = await self.parent_link_repo.find_active_by_parent_and_student(
             current_user.id, student_id
         )
         if link is None:

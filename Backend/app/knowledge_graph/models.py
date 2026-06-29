@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from sqlalchemy import CheckConstraint, Float, ForeignKey, String, UniqueConstraint
-from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
+from app.common.compat import JSONB
 from app.common.types import EdgeRelationship, NodeType
 
 

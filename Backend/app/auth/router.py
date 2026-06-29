@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,11 +13,14 @@ from app.auth.schemas import (
     MessageResponse,
     RefreshRequest,
     RegisterRequest,
+    ResendVerificationRequest,
     ResetPasswordRequest,
     TokenResponse,
     UserResponse,
+    VerifyEmailRequest,
 )
 from app.auth.service import AuthService
+from app.common.response import success_response
 from app.config import settings
 from app.infrastructure.database import get_session
 from app.users.models import User
@@ -34,10 +37,13 @@ def _build_token_response(
         token_type="Bearer",
         expires_in=settings.access_token_expire_minutes * 60,
         user=UserResponse(
-            user_id=user.id,
+            user_id=str(user.id),
             email=user.email,
             full_name=user.full_name,
             role=user.role,
+            country=user.country,
+            preferred_language=user.preferred_language,
+            is_verified=user.is_verified,
             created_at=user.created_at,
         ),
     )
@@ -49,21 +55,59 @@ async def register(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     service = AuthService(session)
-    user = await service.register(
+    access_token, refresh_token, user = await service.register(
         email=body.email,
         password=body.password,
         full_name=body.full_name,
         role=body.role,
+        date_of_birth=body.date_of_birth,
+        country=body.country,
+        preferred_language=body.preferred_language,
     )
     return {
         "status": "success",
-        "data": UserResponse(
-            user_id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            role=user.role,
-            created_at=user.created_at,
-        ).model_dump(mode="json"),
+        "data": _build_token_response(access_token, refresh_token, user).model_dump(
+            mode="json"
+        ),
+    }
+
+
+@router.post("/verify-email")
+async def verify_email(
+    body: VerifyEmailRequest,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    service = AuthService(session)
+    await service.verify_email(raw_token=body.token)
+    return {
+        "status": "success",
+        "data": MessageResponse(message="Email verified successfully").model_dump(),
+    }
+
+
+@router.get("/verify-email")
+async def verify_email_get(
+    token: str = Query(...),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    service = AuthService(session)
+    await service.verify_email(raw_token=token)
+    return {
+        "status": "success",
+        "data": MessageResponse(message="Email verified successfully").model_dump(),
+    }
+
+
+@router.post("/resend-verification")
+async def resend_verification(
+    body: ResendVerificationRequest,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    service = AuthService(session)
+    msg = await service.resend_verification(email=body.email)
+    return {
+        "status": "success",
+        "data": MessageResponse(message=msg).model_dump(),
     }
 
 
@@ -148,3 +192,25 @@ async def reset_password(
         "status": "success",
         "data": MessageResponse(message="Password reset successfully").model_dump(),
     }
+
+
+@router.get("/export-data")
+async def export_data(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = AuthService(session)
+    data = await service.export_user_data(current_user.id)
+    return success_response(data)
+
+
+@router.post("/delete-account")
+async def delete_account(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = AuthService(session)
+    await service.delete_account(current_user.id)
+    return success_response(
+        MessageResponse(message="Account deleted successfully").model_dump()
+    )

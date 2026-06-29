@@ -122,7 +122,7 @@ class TestAuthService:
             )
         )
 
-        user = await service.register(
+        access_token, refresh_token, user = await service.register(
             email="new@test.com",
             password="SecureP@ss123",
             full_name="New User",
@@ -131,6 +131,8 @@ class TestAuthService:
         assert user.email == "new@test.com"
         assert user.role == UserRole.STUDENT
         assert mock_session.add.called
+        assert isinstance(access_token, str)
+        assert isinstance(refresh_token, str)
 
     @pytest.mark.asyncio
     async def test_register_duplicate_email(self) -> None:

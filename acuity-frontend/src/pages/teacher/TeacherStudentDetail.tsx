@@ -1,8 +1,16 @@
+import { useMemo } from 'react'
 import { useAuthApi } from '@/hooks/useApi'
 import { getTeacherStudentMastery, getTeacherStudentProgress, getTeacherStudentSessions, getTeacherStudentAttempts, getTeacherStudentMisconceptions } from '@/services/teacher'
-import { Loader2, ArrowLeft, BookOpen, BarChart3, AlertTriangle } from 'lucide-react'
+import { Loader2, ArrowLeft, BookOpen, BarChart3, AlertTriangle, Flag, TrendingDown, Clock } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { getScoreColor, cn } from '@/lib/utils'
+
+interface AtRiskFlag {
+  type: 'danger' | 'warning' | 'info'
+  icon: React.ElementType
+  title: string
+  description: string
+}
 
 export function TeacherStudentDetail() {
   const { id } = useParams<{ id: string }>()
@@ -22,6 +30,33 @@ export function TeacherStudentDetail() {
     () => id ? getTeacherStudentAttempts(id, 1, 10) : Promise.reject(), [id]
   )
 
+  const masterySum = mastery as { total_concepts?: number; mastered_concepts?: number; average_mastery?: number; concepts?: { concept_title?: string; mastery_level: number }[] } | null
+  const avgScore = masterySum ? Math.round((masterySum.average_mastery || 0) * 100) : 0
+  const completionPct = progress ? (progress as Record<string, unknown>).completion_percentage || 0 : 0
+  const misconceptionsCount = misconceptions?.length || 0
+  const incorrectAttempts = attempts?.filter(a => !a.is_correct).length || 0
+  const recentSessions = sessions?.length || 0
+
+  const riskFlags: AtRiskFlag[] = useMemo(() => {
+    const flags: AtRiskFlag[] = []
+    if (avgScore < 50) {
+      flags.push({ type: 'danger', icon: TrendingDown, title: 'Low Mastery', description: `Average mastery is ${avgScore}% — well below the 75% target. This student needs additional support.` })
+    }
+    if (misconceptionsCount > 3) {
+      flags.push({ type: 'danger', icon: AlertTriangle, title: 'High Misconceptions', description: `${misconceptionsCount} active misconceptions detected. Consider reviewing foundational concepts.` })
+    }
+    if (incorrectAttempts > 5) {
+      flags.push({ type: 'warning', icon: Flag, title: 'Struggling with Exercises', description: `${incorrectAttempts} out of ${attempts?.length || 0} recent attempts were incorrect.` })
+    }
+    if (recentSessions === 0) {
+      flags.push({ type: 'warning', icon: Clock, title: 'No Recent Activity', description: 'No teaching sessions found. This student may be disengaged.' })
+    }
+    if (completionPct < 25) {
+      flags.push({ type: 'info', icon: BookOpen, title: 'Low Course Progress', description: `Only ${completionPct}% of lessons completed.` })
+    }
+    return flags
+  }, [avgScore, misconceptionsCount, incorrectAttempts, attempts?.length, recentSessions, completionPct])
+
   if (progressLoading || masteryLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -30,21 +65,52 @@ export function TeacherStudentDetail() {
     )
   }
 
-  const masterySum = mastery as { total_concepts?: number; mastered_concepts?: number; average_mastery?: number; concepts?: { concept_title?: string; mastery_level: number }[] } | null
-  const avgScore = masterySum ? Math.round((masterySum.average_mastery || 0) * 100) : 0
-
   return (
     <div className="space-y-6">
       <Link to="/teacher/students" className="inline-flex items-center gap-1 text-sm text-navy-600 hover:underline">
         <ArrowLeft className="w-4 h-4" /> Back to Students
       </Link>
 
+      {/* At-Risk Flags */}
+      {riskFlags.length > 0 && (
+        <div className="space-y-2">
+          {riskFlags.map((flag, i) => {
+            const FlagIcon = flag.icon
+            return (
+              <div key={i} className={`flex items-start gap-3 p-4 rounded-xl border shadow-sm ${
+                flag.type === 'danger' ? 'bg-red-50 border-red-200' :
+                flag.type === 'warning' ? 'bg-amber-50 border-amber-200' :
+                'bg-blue-50 border-blue-200'
+              }`}>
+                <FlagIcon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                  flag.type === 'danger' ? 'text-red-600' :
+                  flag.type === 'warning' ? 'text-amber-600' :
+                  'text-blue-600'
+                }`} />
+                <div>
+                  <p className={`text-sm font-semibold ${
+                    flag.type === 'danger' ? 'text-red-800' :
+                    flag.type === 'warning' ? 'text-amber-800' :
+                    'text-blue-800'
+                  }`}>{flag.title}</p>
+                  <p className={`text-xs mt-0.5 ${
+                    flag.type === 'danger' ? 'text-red-600' :
+                    flag.type === 'warning' ? 'text-amber-600' :
+                    'text-blue-600'
+                  }`}>{flag.description}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: BookOpen, label: 'Completion', value: progress ? `${(progress as Record<string, unknown>).completion_percentage || 0}%` : 'N/A', color: 'text-blue-600 bg-blue-50' },
+          { icon: BookOpen, label: 'Completion', value: `${completionPct}%`, color: 'text-blue-600 bg-blue-50' },
           { icon: BarChart3, label: 'Avg Mastery', value: `${avgScore}%`, color: 'text-emerald-600 bg-emerald-50' },
-          { icon: AlertTriangle, label: 'Misconceptions', value: String(misconceptions?.length || 0), color: 'text-amber-600 bg-amber-50' },
-          { icon: BookOpen, label: 'Sessions', value: String(sessions?.length || 0), color: 'text-purple-600 bg-purple-50' },
+          { icon: AlertTriangle, label: 'Misconceptions', value: String(misconceptionsCount), color: 'text-amber-600 bg-amber-50' },
+          { icon: BookOpen, label: 'Sessions', value: String(recentSessions), color: 'text-purple-600 bg-purple-50' },
         ].map((stat) => {
           const Icon = stat.icon
           return (

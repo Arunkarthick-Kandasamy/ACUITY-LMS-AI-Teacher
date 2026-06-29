@@ -181,7 +181,7 @@ async def teach(
 
     try:
         result = await teacher_graph.ainvoke(initial_state)
-    except Exception as e:
+    except Exception:
         logger.exception("Teacher graph invocation failed for session %s", session_id)
         return success_response({
             "action": "error",
@@ -235,7 +235,7 @@ async def teach(
                 session_id=session_id,
                 evidence=diagnosis_result.get("evidence", []),
             )
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to persist misconception for session %s", session_id)
 
     try:
@@ -254,7 +254,7 @@ async def teach(
             recommended_action=result.get("recommended_action"),
             evaluation_score=result.get("mastery_estimate"),
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Memory extraction failed for session %s", session_id)
 
     action = result.get("current_action", TeacherAction.TEACH)

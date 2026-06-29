@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_active_user, require_roles
+from app.auth.dependencies import require_roles
 from app.common.response import paginated_response, success_response
 from app.common.types import UserRole
 from app.config import settings

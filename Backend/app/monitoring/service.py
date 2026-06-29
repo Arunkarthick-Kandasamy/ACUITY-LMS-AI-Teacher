@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from app.monitoring.metrics import MetricsCollector
-from app.monitoring.models import AiRequestMetrics, EndpointMetrics, GraphExecutionMetrics
+from app.monitoring.models import AiRequestMetrics, GraphExecutionMetrics
 
 logger = logging.getLogger(__name__)
 

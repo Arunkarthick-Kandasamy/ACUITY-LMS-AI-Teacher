@@ -49,4 +49,28 @@ export function useAuthApi<T>(
   return useApi(fetcher, [token, ...deps])
 }
 
+export function useAuthMutation<TData, TArgs extends unknown[]>(
+  mutator: (...args: TArgs) => Promise<ApiResponse<TData>>,
+) {
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const mutateAsync = useCallback(async (...args: TArgs): Promise<TData> => {
+    setIsPending(true)
+    setError(null)
+    try {
+      const res = await mutator(...args)
+      return res.data
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'An unexpected error occurred'
+      setError(msg)
+      throw err
+    } finally {
+      setIsPending(false)
+    }
+  }, [mutator])
+
+  return { mutateAsync, isPending, error }
+}
+
 export type { UseApiResult }

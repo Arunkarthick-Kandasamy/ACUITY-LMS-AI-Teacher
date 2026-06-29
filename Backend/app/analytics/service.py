@@ -4,12 +4,12 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.assessments.models import Assessment, AssessmentAttempt
-from app.curriculum.models import Course, Lesson
+from app.common.types import EnrollmentStatus, LessonProgressStatus, UserRole
+from app.curriculum.models import Course
 from app.enrollment.models import StudentCourseEnrollment
 from app.mastery.models import MasteryRecord
 from app.teaching.models import LessonProgress, TeachingSession
 from app.users.models import User
-from app.common.types import EnrollmentStatus, LessonProgressStatus, UserRole
 
 from .schemas import (
     AssessmentAnalytics,

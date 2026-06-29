@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -13,6 +12,9 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8)
     full_name: str = Field(..., max_length=150)
     role: UserRole
+    date_of_birth: date | None = None
+    country: str | None = Field(None, max_length=100)
+    preferred_language: str = Field(default="en", max_length=10)
 
 
 class LoginRequest(BaseModel):
@@ -21,11 +23,14 @@ class LoginRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    user_id: uuid.UUID
+    user_id: str
     email: str
     full_name: str
     role: UserRole
-    created_at: datetime
+    country: str | None = None
+    preferred_language: str = "en"
+    is_verified: bool = False
+    created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
@@ -49,6 +54,14 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: str = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 
 class MessageResponse(BaseModel):

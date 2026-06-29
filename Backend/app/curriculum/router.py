@@ -8,6 +8,7 @@ from app.common.response import paginated_response, success_response
 from app.common.types import UserRole
 from app.config import settings
 from app.curriculum.schemas import (
+    CatalogCourseResponse,
     ConceptContentCreate,
     ConceptContentResponse,
     ConceptCreate,
@@ -54,6 +55,43 @@ from app.users.models import User
 router = APIRouter(prefix=f"{settings.api_prefix}", tags=["Curriculum"])
 
 admin_only = require_roles(UserRole.ADMIN)
+
+
+# -----------------------------------------------------------------------
+# Public Catalog
+# -----------------------------------------------------------------------
+
+@router.get("/catalog")
+async def get_catalog(
+    search: str | None = Query(None, max_length=100),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    service = CourseService(session)
+    courses, total = await service.list_courses(
+        is_published=True, search=search, page=page, per_page=per_page
+    )
+    items = []
+    for c in courses:
+        teacher_name = c.created_by_user.full_name if c.created_by_user else None
+        module_count = len(c.modules) if hasattr(c, "modules") else 0
+        lesson_count = sum(len(m.lessons) for m in c.modules) if hasattr(c, "modules") else 0
+        items.append(
+            CatalogCourseResponse(
+                course_id=c.id,
+                code=c.code,
+                title=c.title,
+                description=c.description,
+                teacher_name=teacher_name,
+                total_duration_hours=c.total_duration_hours,
+                default_deadline_days=c.default_deadline_days,
+                module_count=module_count,
+                lesson_count=lesson_count,
+                created_at=c.created_at,
+            ).model_dump(mode="json")
+        )
+    return paginated_response(items, total, page, per_page)
 
 
 # -----------------------------------------------------------------------

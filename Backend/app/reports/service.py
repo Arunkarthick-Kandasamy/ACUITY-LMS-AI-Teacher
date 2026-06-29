@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import func, select
@@ -10,12 +10,10 @@ from sqlalchemy.orm import joinedload
 
 from app.ai.services.gemini import GeminiService
 from app.common.exceptions import ForbiddenException, NotFoundException
-from app.common.types import EnrollmentStatus, LessonProgressStatus, UserRole
-from app.curriculum.models import Concept, Course, Lesson, Module
+from app.common.types import LessonProgressStatus, UserRole
+from app.curriculum.models import Course
 from app.diagnosis.models import Misconception
-from app.enrollment.models import CourseSchedule, StudentCourseEnrollment
 from app.enrollment.repository import CourseScheduleRepository, EnrollmentRepository
-from app.mastery.models import MasteryRecord
 from app.mastery.repository import MasteryRecordRepository
 from app.progress.repository import LessonProgressRepository
 from app.teaching.models import Attempt, TeachingSession
@@ -220,7 +218,7 @@ class ReportService:
                 "course_title": course.title if course else None,
                 "current_week": schedule.current_week,
                 "target_lessons_per_week": schedule.target_lessons_per_week,
-                "pace_status": schedule.pace_status.value if hasattr(schedule.pace_status, "value") else str(schedule.pace_status),
+                "pace_status": schedule.pace_status.value if hasattr(schedule.pace_status, "value") else str(schedule.pace_status),  # noqa: E501
             })
         data["pacing"] = pacing_data
 
@@ -421,7 +419,7 @@ class ReportService:
                         ChallengeItem(**c) for c in report.report_data.get("challenges", [])
                     ],
                     recommendations=[
-                        RecommendationItem(**r) for r in report.report_data.get("recommendations", report.recommendations or [])
+                        RecommendationItem(**r) for r in report.report_data.get("recommendations", report.recommendations or [])  # noqa: E501
                     ],
                     risk_indicators=[
                         RiskIndicator(**ri) for ri in report.report_data.get("risk_indicators", [])

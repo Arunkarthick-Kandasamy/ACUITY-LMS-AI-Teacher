@@ -9,7 +9,10 @@ from app.config import settings
 from app.infrastructure.database import get_session
 from app.users.models import User
 
-from .schemas import DashboardResponse
+from .schemas import (
+    LinkStudentRequest,
+    UnlinkStudentResponse,
+)
 from .service import ParentDashboardService
 
 router = APIRouter(
@@ -155,3 +158,84 @@ async def get_student_dashboard(
     service = ParentDashboardService(session)
     dashboard = await service.get_dashboard(current_user, student_id)
     return success_response(dashboard.model_dump(mode="json"))
+
+
+# -----------------------------------------------------------------------
+# Linking Code Management
+# -----------------------------------------------------------------------
+
+@router.post("/link-codes/generate")
+async def generate_linking_code(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    result = await service.generate_linking_code(current_user)
+    return success_response(result.model_dump(mode="json"))
+
+
+@router.post("/link")
+async def link_student(
+    body: LinkStudentRequest,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    result = await service.link_student(
+        current_user, code=body.code, parent_email=body.parent_email
+    )
+    return success_response(result.model_dump(mode="json"))
+
+
+@router.get("/pending-requests")
+async def get_pending_requests(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    requests = await service.get_pending_requests(current_user)
+    return success_response([r.model_dump(mode="json") for r in requests])
+
+
+@router.post("/approve/{link_id}")
+async def approve_link(
+    link_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    result = await service.approve_link(current_user, link_id)
+    return success_response(result.model_dump(mode="json"))
+
+
+@router.post("/reject/{link_id}")
+async def reject_link(
+    link_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    result = await service.reject_link(current_user, link_id)
+    return success_response(result.model_dump(mode="json"))
+
+
+@router.get("/students/{student_id}/audit-log")
+async def get_audit_log(
+    student_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    entries = await service.get_audit_log(current_user, student_id)
+    return success_response([e.model_dump(mode="json") for e in entries])
+
+
+@router.delete("/students/{student_id}")
+async def unlink_student(
+    student_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
+    service = ParentDashboardService(session)
+    await service.unlink_student(current_user, student_id)
+    return success_response(UnlinkStudentResponse(message="Student unlinked successfully").model_dump())

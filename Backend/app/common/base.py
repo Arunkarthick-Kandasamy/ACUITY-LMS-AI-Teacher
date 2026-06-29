@@ -2,12 +2,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
-from sqlalchemy import Uuid
-
-from app.config import settings
 
 
 class Base(DeclarativeBase):

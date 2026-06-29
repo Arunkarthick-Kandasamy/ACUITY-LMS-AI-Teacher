@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from app.config import settings
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +21,10 @@ class EmailService:
     async def send_welcome_email(self, user_email: str) -> bool:
         subject = "Welcome to Acuity LMS"
         body = (
-            f"Hello,\n\n"
-            f"Welcome to Acuity LMS! Your account has been created successfully.\n\n"
-            f"Get started by exploring your courses and beginning your learning journey.\n\n"
-            f"Best regards,\nThe Acuity LMS Team"
+            "Hello,\n\n"
+            "Welcome to Acuity LMS! Your account has been created successfully.\n\n"
+            "Get started by exploring your courses and beginning your learning journey.\n\n"
+            "Best regards,\nThe Acuity LMS Team"
         )
         return await self.send_email(to=user_email, subject=subject, body=body)
 

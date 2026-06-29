@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 # Import all models so they register with Base.metadata
 import app.assessments.models  # noqa: F401
 import app.audit.models  # noqa: F401
+import app.auth.models  # noqa: F401
 import app.curriculum.models  # noqa: F401
 import app.diagnosis.models  # noqa: F401
 import app.enrollment.models  # noqa: F401

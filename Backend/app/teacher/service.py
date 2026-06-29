@@ -10,9 +10,7 @@ from app.common.exceptions import ForbiddenException, NotFoundException
 from app.common.types import LessonProgressStatus, UserRole
 from app.curriculum.models import Course
 from app.diagnosis.models import Misconception
-from app.enrollment.models import StudentCourseEnrollment
 from app.enrollment.repository import EnrollmentRepository
-from app.mastery.models import MasteryRecord
 from app.mastery.repository import MasteryRecordRepository
 from app.progress.repository import LessonProgressRepository
 from app.teaching.models import Attempt, TeachingSession
@@ -322,9 +320,6 @@ class TeacherService:
 
     async def list_courses(self, current_user: User) -> list[TeacherCourseResponse]:
         if current_user.role == UserRole.ADMIN:
-            from app.curriculum.repository import CourseRepository
-
-            course_repo = CourseRepository(self.session)
             stmt = select(Course).where(Course.is_published.is_(True))
             result = await self.session.execute(stmt)
             courses = result.unique().scalars().all()

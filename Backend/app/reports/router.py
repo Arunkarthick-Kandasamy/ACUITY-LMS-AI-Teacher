@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_active_user
@@ -9,7 +9,6 @@ from app.config import settings
 from app.infrastructure.database import get_session
 from app.users.models import User
 
-from .schemas import ReportResponse
 from .service import ReportService
 
 router = APIRouter(

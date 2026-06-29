@@ -11,29 +11,35 @@ from fastapi.responses import JSONResponse
 
 from app.ai.evaluation.router import router as ai_evaluation_router
 from app.ai.router import router as ai_router
-from app.parent_dashboard.router import router as parent_dashboard_router
-from app.content_ingestion.router import router as content_ingestion_router
-from app.reports.router import router as reports_router
-from app.health.router import router as health_router
+from app.analytics.router import router as analytics_router
+from app.assessments.router import router as assessments_router
 from app.auth.router import router as auth_router
 from app.common.context import request_id_var
 from app.common.exceptions import AppException
 from app.config import settings
+from app.content_ingestion.router import router as content_ingestion_router
 from app.curriculum.router import router as curriculum_router
 from app.enrollment.router import router as enrollment_router
+from app.gamification.router import router as gamification_router
+from app.health.router import router as health_router
 from app.infrastructure.database import close_db, init_db
 from app.infrastructure.logging import get_logger, setup_logging
+from app.institutional.router import router as institutional_router
 from app.knowledge_graph.router import router as knowledge_graph_router
 from app.mastery.router import router as mastery_router
-from app.pacing.router import router as pacing_router
-from app.progress.router import router as progress_router
-from app.teaching_sessions.router import router as teaching_sessions_router
-from app.analytics.router import router as analytics_router
-from app.assessments.router import router as assessments_router
-from app.teacher.router import router as teacher_router
-from app.notifications.router import router as notifications_router
-from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.messaging.router import router as messaging_router
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.moderation.router import router as moderation_router
+from app.notifications.router import router as notifications_router
+from app.pacing.router import router as pacing_router
+from app.parent_dashboard.router import router as parent_dashboard_router
+from app.parental_controls.router import router as parental_controls_router
+from app.payments.router import router as payments_router
+from app.progress.router import router as progress_router
+from app.reports.router import router as reports_router
+from app.teacher.router import router as teacher_router
+from app.teaching_sessions.router import router as teaching_sessions_router
 
 
 @asynccontextmanager
@@ -150,6 +156,12 @@ app.include_router(assessments_router)
 app.include_router(analytics_router)
 app.include_router(teacher_router)
 app.include_router(notifications_router)
+app.include_router(parental_controls_router)
+app.include_router(messaging_router)
+app.include_router(moderation_router)
+app.include_router(institutional_router)
+app.include_router(gamification_router)
+app.include_router(payments_router)
 
 
 # ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, Depends
 
-from app.auth.dependencies import get_current_active_user, require_roles
+from app.auth.dependencies import require_roles
 from app.common.types import UserRole
 from app.config import settings
 from app.users.models import User

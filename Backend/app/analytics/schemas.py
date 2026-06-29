@@ -1,12 +1,12 @@
+
 from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional
+
 
 class AssessmentAnalytics(BaseModel):
     average_score: float = 0.0
     total_attempts: int = 0
     pass_rate: float = 0.0
-    avg_time_spent_seconds: Optional[float] = None
+    avg_time_spent_seconds: float | None = None
     pass_count: int = 0
     fail_count: int = 0
 
@@ -38,5 +38,5 @@ class SystemOverview(BaseModel):
 class DashboardAnalyticsResponse(BaseModel):
     assessments: AssessmentAnalytics
     progress: StudentProgressAnalytics
-    course: Optional[CourseProgressAnalytics] = None
-    overview: Optional[SystemOverview] = None
+    course: CourseProgressAnalytics | None = None
+    overview: SystemOverview | None = None

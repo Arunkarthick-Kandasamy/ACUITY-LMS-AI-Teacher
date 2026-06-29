@@ -2,7 +2,14 @@ import { createBrowserRouter, Outlet } from 'react-router-dom'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { StudentOnboarding } from '@/pages/auth/StudentOnboarding'
+import { CourseCatalogPage } from '@/pages/catalog/CourseCatalogPage'
+import { ParentAccessPage } from '@/pages/student/ParentAccessPage'
+import { LinkStudentPage } from '@/pages/parent/LinkStudentPage'
+import { KnowledgeGraphPage } from '@/pages/admin/KnowledgeGraphPage'
+import { ContentUploadPage } from '@/pages/teacher/ContentUploadPage'
 import { AppLayout } from '@/layouts/AppLayout'
 import { StudentDashboard } from '@/pages/student/StudentDashboard'
 import { LearningPathPage } from '@/pages/student/LearningPathPage'
@@ -26,6 +33,12 @@ import { TeacherDashboard } from '@/pages/teacher/TeacherDashboard'
 import { TeacherStudentsPage } from '@/pages/teacher/TeacherStudentsPage'
 import { TeacherStudentDetail } from '@/pages/teacher/TeacherStudentDetail'
 import { TeacherCoursesPage } from '@/pages/teacher/TeacherCoursesPage'
+import MessagesPage from '@/pages/messages/MessagesPage'
+import ModerationPage from '@/pages/admin/ModerationPage'
+import SchoolsPage from '@/pages/admin/SchoolsPage'
+import AchievementsPage from '@/pages/AchievementsPage'
+import SubscriptionPage from '@/pages/SubscriptionPage'
+import OfflinePage from '@/pages/OfflinePage'
 
 function StudentLayout() {
   return <AppLayout role="student"><Outlet /></AppLayout>
@@ -45,6 +58,9 @@ function TeacherLayout() {
 
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
+  { path: '/courses', element: <CourseCatalogPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/onboarding', element: <StudentOnboarding /> },
   {
@@ -62,6 +78,9 @@ export const router = createBrowserRouter([
         { path: '/student/assessments/:id/result', element: <AssessmentResultPage /> },
         { path: '/student/progress', element: <ProgressPage /> },
         { path: '/student/profile', element: <ProfilePage /> },
+        { path: '/student/parent-access', element: <ParentAccessPage /> },
+        { path: '/student/messages', element: <MessagesPage /> },
+        { path: '/student/achievements', element: <AchievementsPage /> },
       ],
     }],
   },
@@ -72,6 +91,7 @@ export const router = createBrowserRouter([
       children: [
         { path: '/parent/dashboard', element: <ParentDashboard /> },
         { path: '/parent/student', element: <ParentStudentDetail /> },
+        { path: '/parent/link', element: <LinkStudentPage /> },
         { path: '/parent/reports', element: <ReportsPage /> },
         { path: '/parent/insights', element: <InsightsPage /> },
       ],
@@ -86,6 +106,9 @@ export const router = createBrowserRouter([
         { path: '/admin/students', element: <StudentsPage /> },
         { path: '/admin/analytics', element: <AnalyticsPage /> },
         { path: '/admin/assessments', element: <AssessmentManagementPage /> },
+        { path: '/admin/knowledge-graph', element: <KnowledgeGraphPage /> },
+        { path: '/admin/moderation', element: <ModerationPage /> },
+        { path: '/admin/schools', element: <SchoolsPage /> },
       ],
     }],
   },
@@ -98,6 +121,9 @@ export const router = createBrowserRouter([
         { path: '/teacher/students', element: <TeacherStudentsPage /> },
         { path: '/teacher/students/:id', element: <TeacherStudentDetail /> },
         { path: '/teacher/courses', element: <TeacherCoursesPage /> },
+        { path: '/teacher/upload', element: <ContentUploadPage /> },
+        { path: '/teacher/messages', element: <MessagesPage /> },
+        { path: '/teacher/subscription', element: <SubscriptionPage /> },
       ],
     }],
   },

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
-from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.common.base import Base, TimestampMixin, UUIDMixin
+from app.common.compat import JSONB
 from app.common.types import AssessmentType, QuestionType
 
 
@@ -32,10 +32,10 @@ class Assessment(UUIDMixin, TimestampMixin, Base):
         ForeignKey("users.id"), nullable=False, index=True
     )
 
-    course: Mapped["Course"] = relationship(back_populates="assessments")
-    lesson: Mapped["Lesson | None"] = relationship(back_populates="assessments")
-    module: Mapped["Module | None"] = relationship(back_populates="assessments")
-    creator: Mapped["User"] = relationship(back_populates="assessments_created")
+    course: Mapped[Course] = relationship(back_populates="assessments")
+    lesson: Mapped[Lesson | None] = relationship(back_populates="assessments")
+    module: Mapped[Module | None] = relationship(back_populates="assessments")
+    creator: Mapped[User] = relationship(back_populates="assessments_created")
     questions: Mapped[list[AssessmentQuestion]] = relationship(
         back_populates="assessment", cascade="all, delete-orphan"
     )
@@ -85,7 +85,7 @@ class AssessmentAttempt(UUIDMixin, TimestampMixin, Base):
     attempt_number: Mapped[int] = mapped_column(nullable=False)
 
     assessment: Mapped[Assessment] = relationship(back_populates="attempts")
-    student: Mapped["StudentProfile"] = relationship(back_populates="assessment_attempts")
+    student: Mapped[StudentProfile] = relationship(back_populates="assessment_attempts")
     responses: Mapped[list[AssessmentResponse]] = relationship(
         back_populates="attempt", cascade="all, delete-orphan"
     )
@@ -131,4 +131,4 @@ class QuestionBank(UUIDMixin, TimestampMixin, Base):
     explanation: Mapped[str | None] = mapped_column(Text)
     tags: Mapped[list[str] | None] = mapped_column(JSONB)
 
-    course: Mapped["Course"] = relationship(back_populates="question_bank_items")
+    course: Mapped[Course] = relationship(back_populates="question_bank_items")

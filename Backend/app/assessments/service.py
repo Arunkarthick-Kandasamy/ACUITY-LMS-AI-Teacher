@@ -4,6 +4,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import select as _select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.assessments.models import (
@@ -22,9 +23,7 @@ from app.assessments.repository import (
 )
 from app.common.exceptions import NotFoundException, ValidationException
 from app.common.types import AssessmentType, LessonProgressStatus, QuestionType
-from sqlalchemy import select as _select
-
-from app.curriculum.models import Concept, Exercise, Lesson, Module
+from app.curriculum.models import Concept, Lesson
 from app.curriculum.repository import CourseRepository, LessonRepository
 from app.enrollment.repository import CourseScheduleRepository, EnrollmentRepository
 from app.mastery.repository import MasteryRecordRepository
@@ -408,9 +407,7 @@ class AssessmentService:
         correct = question.correct_answer.strip()
         answer = response.strip()
 
-        if qtype == QuestionType.MCQ:
-            is_correct = answer.lower() == correct.lower()
-        elif qtype == QuestionType.TRUE_FALSE:
+        if qtype == QuestionType.MCQ or qtype == QuestionType.TRUE_FALSE:
             is_correct = answer.lower() == correct.lower()
         elif qtype == QuestionType.MULTI_SELECT:
             is_correct = self._grade_multi_select(answer, correct)

@@ -20,12 +20,12 @@ def format_trace_report(trace: dict[str, Any], scenario: EvaluationScenario | No
         lines.append(f"Expected action: {scenario.expected_action}")
         lines.append(f"Expected nodes: {' -> '.join(scenario.expected_nodes)}")
 
-    lines.append(f"\n--- Execution ---")
+    lines.append("\n--- Execution ---")
     lines.append(f"Total duration: {trace.get('total_duration_ms', 0):.1f}ms")
     lines.append(f"Model calls: {trace.get('model_calls', 0)}")
     lines.append(f"Token usage: {json.dumps(trace.get('token_usage', {}))}")
 
-    lines.append(f"\n--- Node Transitions ---")
+    lines.append("\n--- Node Transitions ---")
     for i, transition in enumerate(trace.get("node_transitions", []), 1):
         node = transition.get("node", "?")
         duration = transition.get("duration_ms", 0)
@@ -34,7 +34,7 @@ def format_trace_report(trace: dict[str, Any], scenario: EvaluationScenario | No
         lines.append(f"  {i}. {node} ({duration:.1f}ms){action_str}")
 
     final_state = trace.get("final_state", {})
-    lines.append(f"\n--- Final State ---")
+    lines.append("\n--- Final State ---")
     lines.append(f"  Action: {final_state.get('current_action', '?')}")
     lines.append(f"  Mastery: {final_state.get('mastery_estimate', 0.0):.2f}")
     if final_state.get("recommended_action"):
@@ -44,7 +44,7 @@ def format_trace_report(trace: dict[str, Any], scenario: EvaluationScenario | No
         actual_nodes = [t["node"] for t in trace["node_transitions"]]
         expected = scenario.expected_nodes
         passed = actual_nodes == expected
-        lines.append(f"\n--- Validation ---")
+        lines.append("\n--- Validation ---")
         lines.append(f"  Expected nodes: {' -> '.join(expected)}")
         lines.append(f"  Actual nodes:   {' -> '.join(actual_nodes)}")
         lines.append(f"  Node sequence match: {'PASS' if passed else 'FAIL'}")

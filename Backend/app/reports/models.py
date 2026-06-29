@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
-from app.common.compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.common.base import Base, UUIDMixin
+from app.common.compat import JSONB
 from app.common.types import ReportType
 
 

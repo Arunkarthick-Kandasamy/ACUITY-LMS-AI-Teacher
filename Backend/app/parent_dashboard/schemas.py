@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel
@@ -111,6 +111,66 @@ class RecentActivityItem(BaseModel):
     timestamp: datetime | None = None
     session_id: str | None = None
     concept_title: str | None = None
+
+
+class LinkingCodeResponse(BaseModel):
+    code: str
+    expires_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class LinkStudentRequest(BaseModel):
+    code: str
+    parent_email: str | None = None
+
+
+class LinkStudentResponse(BaseModel):
+    link_id: str
+    student_id: str
+    full_name: str
+    status: str = "pending"
+    message: str
+
+
+class PendingLinkRequest(BaseModel):
+    link_id: str
+    parent_email: str | None = None
+    parent_name: str | None = None
+    parent_id: str
+    requested_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ApproveLinkResponse(BaseModel):
+    link_id: str
+    student_id: str
+    status: str = "active"
+    message: str
+
+
+class RejectLinkResponse(BaseModel):
+    link_id: str
+    status: str = "rejected"
+    message: str
+
+
+class UnlinkStudentResponse(BaseModel):
+    message: str
+
+
+class AuditLogEntry(BaseModel):
+    id: str
+    action: str
+    actor_id: str | None = None
+    student_id: str | None = None
+    parent_id: str | None = None
+    parent_email: str | None = None
+    details: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class DashboardResponse(BaseModel):
