@@ -1,18 +1,16 @@
-import { apiRequest } from './api'
-import type { Enrollment } from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, Enrollment } from './types'
 
-export async function enroll(course_id: string, target_completion_date?: string) {
-  return apiRequest<Enrollment>('/api/v1/enrollments', {
-    method: 'POST',
-    body: JSON.stringify({ course_id, target_completion_date }),
-  })
+export async function enroll(course_id: string, _target_completion_date?: string) {
+  return localDb.enroll(course_id) as unknown as ApiResponse<Enrollment>
 }
 
 export async function getEnrollments(status?: string) {
-  const qs = status ? `?status=${status}` : ''
-  return apiRequest<Enrollment[]>(`/api/v1/enrollments${qs}`)
+  return localDb.getEnrollments('u1', status) as unknown as ApiResponse<Enrollment[]>
 }
 
 export async function getEnrollment(enrollmentId: string) {
-  return apiRequest<Enrollment>(`/api/v1/enrollments/${enrollmentId}`)
+  const data = await localDb.getEnrollments('u1')
+  const enrollment = data.data.find(e => e.enrollment_id === enrollmentId)
+  return { status: 'success' as const, data: enrollment || data.data[0] }
 }

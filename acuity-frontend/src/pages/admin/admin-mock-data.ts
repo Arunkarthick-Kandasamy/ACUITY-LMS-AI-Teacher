@@ -69,27 +69,7 @@ export const mockPrereqs: Record<string, { edge_id: string; prerequisite_id: str
   con_014: [{ edge_id: 'edge_010', prerequisite_id: 'con_007', prerequisite_title: 'Cell Structure' }, { edge_id: 'edge_011', prerequisite_id: 'con_008', prerequisite_title: 'DNA Replication' }],
 }
 
-export const mockModerationItems = [
-  { id: 'mod_001', content_id: 'content_001', content_type: 'Lesson Video', uploader_name: 'Dr. Anita Sharma', status: 'pending', flag_reason: 'Inappropriate language detected', created_at: '2025-12-10T09:30:00Z', review_notes: null },
-  { id: 'mod_002', content_id: 'content_002', content_type: 'Assessment Question', uploader_name: 'Prof. Ravi Verma', status: 'pending', flag_reason: 'Possible copyright violation', created_at: '2025-12-11T14:15:00Z', review_notes: null },
-  { id: 'mod_003', content_id: 'content_003', content_type: 'Study Material', uploader_name: 'Ms. Priya Patel', status: 'approved', flag_reason: null, created_at: '2025-12-08T11:00:00Z', review_notes: null },
-  { id: 'mod_004', content_id: 'content_004', content_type: 'User Profile', uploader_name: 'Alex Chen', status: 'rejected', flag_reason: 'Inappropriate profile picture', created_at: '2025-12-09T16:45:00Z', review_notes: 'Profile picture removed. User notified.' },
-  { id: 'mod_005', content_id: 'content_005', content_type: 'Lesson Video', uploader_name: 'Dr. Sunil Gupta', status: 'pending', flag_reason: 'Audio quality issues', created_at: '2025-12-12T08:00:00Z', review_notes: null },
-  { id: 'mod_006', content_id: 'content_006', content_type: 'Discussion Post', uploader_name: 'Divya Reddy', status: 'pending', flag_reason: 'Reported by multiple users', created_at: '2025-12-12T10:20:00Z', review_notes: null },
-  { id: 'mod_007', content_id: 'content_007', content_type: 'Assessment Question', uploader_name: 'Ms. Kavita Reddy', status: 'approved', flag_reason: null, created_at: '2025-12-07T13:30:00Z', review_notes: null },
-  { id: 'mod_008', content_id: 'content_008', content_type: 'Study Material', uploader_name: 'Karan Joshi', status: 'pending', flag_reason: 'Factual accuracy concern', created_at: '2025-12-12T15:00:00Z', review_notes: null },
-]
 
-export const mockSchools = [
-  { id: 'sch_001', name: 'Delhi Public School', code: 'DPS_RK', address: 'RK Puram, New Delhi', phone: '+91-11-45678901', is_active: true, domains: ['dpsrkp.edu', 'dpsdelhi.edu'] },
-  { id: 'sch_002', name: 'National Public School', code: 'NPS_IN', address: 'Indiranagar, Bangalore', phone: '+91-80-23456789', is_active: true, domains: ['npsindiranagar.edu'] },
-  { id: 'sch_003', name: 'DAV Public School', code: 'DAV_PT', address: 'Patna, Bihar', phone: '+91-612-3456789', is_active: true, domains: ['davpatna.edu'] },
-  { id: 'sch_004', name: 'St. Mary\'s Convent', code: 'SMC_KL', address: 'Kochi, Kerala', phone: '+91-484-2345678', is_active: false, domains: ['stmaryskochi.edu'] },
-  { id: 'sch_005', name: 'Chinmaya Vidyalaya', code: 'CHN_MN', address: 'Mumbai, Maharashtra', phone: '+91-22-34567890', is_active: true, domains: ['chinmayamumbai.edu'] },
-  { id: 'sch_006', name: 'Sri Chaitanya School', code: 'SCS_HYD', address: 'Hyderabad, Telangana', phone: '+91-40-45678901', is_active: true, domains: ['srichaitanyahyderabad.edu', 'srichaitanya.in'] },
-  { id: 'sch_007', name: 'The Lawrence School', code: 'LAW_OO', address: 'Ooty, Tamil Nadu', phone: '+91-423-3456789', is_active: true, domains: ['lawrenceschoolooty.edu'] },
-  { id: 'sch_008', name: 'Cathedral & John Connon', code: 'CJC_MN', address: 'Mumbai, Maharashtra', phone: '+91-22-23456789', is_active: true, domains: ['cathedralconnon.edu'] },
-]
 
 export const mockSystemOverview: DashboardAnalyticsResponse = {
   total_users: 28450,

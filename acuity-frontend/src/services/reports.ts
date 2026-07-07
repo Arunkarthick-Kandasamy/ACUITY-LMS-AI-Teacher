@@ -1,16 +1,14 @@
-import { apiRequest } from './api'
-import type { Report } from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, Report } from './types'
 
-export async function generateReport(studentId: string, reportType = 'weekly') {
-  return apiRequest<Report>(`/api/v1/reports/generate/${studentId}?report_type=${reportType}`, {
-    method: 'POST',
-  })
+export async function generateReport(studentId: string, _reportType = 'weekly') {
+  return localDb.generateReport(studentId) as unknown as ApiResponse<Report>
 }
 
 export async function getReport(reportId: string) {
-  return apiRequest<Report>(`/api/v1/reports/${reportId}`)
+  return localDb.getReport(reportId) as unknown as ApiResponse<Report>
 }
 
-export async function getStudentReports(studentId: string, page = 1, per_page = 20) {
-  return apiRequest<Report[]>(`/api/v1/reports/student/${studentId}?page=${page}&per_page=${per_page}`)
+export async function getStudentReports(studentId: string, _page = 1, _per_page = 20) {
+  return localDb.getStudentReports(studentId) as unknown as ApiResponse<Report[]>
 }

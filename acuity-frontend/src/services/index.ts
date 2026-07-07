@@ -1,4 +1,4 @@
-export { apiRequest, setTokens, clearTokens, getAccessToken, getRefreshToken, fetchCsrfToken, ApiError } from './api'
+export { apiRequest, setTokens, clearTokens, getAccessToken, getRefreshToken, ApiError } from './api'
 export * as authService from './auth'
 export * as curriculumService from './curriculum'
 export * as progressService from './progress'

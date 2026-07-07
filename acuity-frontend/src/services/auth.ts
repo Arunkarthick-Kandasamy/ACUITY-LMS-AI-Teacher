@@ -1,54 +1,27 @@
-import { apiRequest, setTokens, clearTokens } from './api'
-import type { ApiResponse, AuthTokens, LoginResponse, User, UserRole } from './types'
+import { setTokens, clearTokens } from './api'
+import { localDb } from './localDb'
+import type { AuthTokens, LoginResponse, User, UserRole } from './types'
 
 export async function login(email: string, password: string, role: UserRole): Promise<LoginResponse> {
-  const json = await apiRequest<LoginResponse>('/api/v1/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, role }),
-  })
-  setTokens(json.data.access_token, json.data.refresh_token)
-  return json.data
+  const data = await localDb.login(email, password, role)
+  setTokens(data.access_token, data.refresh_token)
+  return data
 }
 
-export async function register(
-  email: string,
-  password: string,
-  full_name: string,
-  role: UserRole,
-): Promise<User> {
-  const json = await apiRequest<User>('/api/v1/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, full_name, role }),
-  })
-  return json.data
+export async function register(email: string, password: string, full_name: string, role: UserRole): Promise<User> {
+  const user = await localDb.register(email, password, full_name, role)
+  setTokens(`local_token_${user.user_id}`, `local_refresh_${user.user_id}`)
+  return user
 }
 
 export async function logout(): Promise<void> {
-  try {
-    await apiRequest<{ message: string }>('/api/v1/auth/logout', { method: 'POST' })
-  } finally {
-    clearTokens()
-  }
+  clearTokens()
 }
 
 export async function refreshToken(token: string): Promise<AuthTokens> {
-  const json = await apiRequest<AuthTokens>('/api/v1/auth/refresh', {
-    method: 'POST',
-    body: JSON.stringify({ refresh_token: token }),
-  })
-  return json.data
+  return { access_token: token, refresh_token: token, token_type: 'bearer', expires_in: 86400 }
 }
 
-export async function forgotPassword(email: string): Promise<void> {
-  await apiRequest<{ message: string }>('/api/v1/auth/forgot-password', {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-  })
-}
+export async function forgotPassword(_email: string): Promise<void> {}
 
-export async function resetPassword(token: string, new_password: string): Promise<void> {
-  await apiRequest<{ message: string }>('/api/v1/auth/reset-password', {
-    method: 'POST',
-    body: JSON.stringify({ token, new_password }),
-  })
-}
+export async function resetPassword(_token: string, _new_password: string): Promise<void> {}

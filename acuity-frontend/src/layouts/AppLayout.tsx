@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Bot, ClipboardCheck, BarChart3, User,
   GraduationCap, Users, Link2, GitBranch, Upload, MessageSquare,
-  Shield, School, Trophy, CreditCard, Menu, X, Search,
+  Trophy, Star, CreditCard, Settings, Menu, X, Search,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -19,8 +19,9 @@ const sidebarConfig = {
       { label: 'AI Tutor', path: '/student/ai-tutor', icon: Bot },
       { label: 'Assessments', path: '/student/assessments', icon: ClipboardCheck },
       { label: 'My Progress', path: '/student/progress', icon: BarChart3 },
-      { label: 'Messages', path: '/student/messages', icon: MessageSquare },
       { label: 'Achievements', path: '/student/achievements', icon: Trophy },
+      { label: 'Leaderboard', path: '/student/leaderboard', icon: Star },
+      { label: 'Settings', path: '/student/settings', icon: Settings },
       { label: 'Profile', path: '/student/profile', icon: User },
     ],
   },
@@ -32,6 +33,7 @@ const sidebarConfig = {
       { label: 'Link Student', path: '/parent/link', icon: Link2 },
       { label: 'Reports', path: '/parent/reports', icon: ClipboardCheck },
       { label: 'Insights', path: '/parent/insights', icon: Bot },
+      { label: 'Settings', path: '/parent/settings', icon: Settings },
     ],
   },
   admin: {
@@ -42,8 +44,7 @@ const sidebarConfig = {
       { label: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
       { label: 'Assessments', path: '/admin/assessments', icon: ClipboardCheck },
       { label: 'Knowledge Graph', path: '/admin/knowledge-graph', icon: GitBranch },
-      { label: 'Moderation', path: '/admin/moderation', icon: Shield },
-      { label: 'Schools', path: '/admin/schools', icon: School },
+      { label: 'Settings', path: '/admin/settings', icon: Settings },
     ],
   },
   teacher: {
@@ -55,6 +56,7 @@ const sidebarConfig = {
       { label: 'Upload Content', path: '/teacher/upload', icon: Upload },
       { label: 'Messages', path: '/teacher/messages', icon: MessageSquare },
       { label: 'Subscription', path: '/teacher/subscription', icon: CreditCard },
+      { label: 'Settings', path: '/teacher/settings', icon: Settings },
     ],
   },
   course_admin: {
@@ -64,8 +66,8 @@ const sidebarConfig = {
       { label: 'Courses', path: '/course-admin/courses', icon: GraduationCap },
       { label: 'Create Course', path: '/course-admin/create', icon: Upload },
       { label: 'Students', path: '/course-admin/students', icon: User },
-      { label: 'Messages', path: '/course-admin/messages', icon: MessageSquare },
       { label: 'Subscription', path: '/course-admin/subscription', icon: CreditCard },
+      { label: 'Settings', path: '/course-admin/settings', icon: Settings },
     ],
   },
 }

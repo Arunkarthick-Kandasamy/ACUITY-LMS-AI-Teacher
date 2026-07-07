@@ -1,47 +1,34 @@
-import { apiRequest } from './api'
-import type { Attempt, TeachingSession } from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, Attempt, TeachingSession } from './types'
 
-export async function startSession(course_id: string, resume_last = true) {
-  return apiRequest<TeachingSession>('/api/v1/sessions', {
-    method: 'POST',
-    body: JSON.stringify({ course_id, resume_last }),
-  })
+export async function startSession(course_id: string, _resume_last = true) {
+  return localDb.startSession(course_id) as unknown as ApiResponse<TeachingSession>
 }
 
 export async function getCurrentSession() {
-  return apiRequest<TeachingSession | null>('/api/v1/sessions/current')
+  return localDb.getCurrentSession() as unknown as ApiResponse<TeachingSession | null>
 }
 
 export async function getSession(sessionId: string) {
-  return apiRequest<TeachingSession>(`/api/v1/sessions/${sessionId}`)
+  return localDb.getSession(sessionId) as unknown as ApiResponse<TeachingSession>
 }
 
 export async function pauseSession(sessionId: string) {
-  return apiRequest<TeachingSession>(`/api/v1/sessions/${sessionId}/pause`, {
-    method: 'PATCH',
-  })
+  return localDb.getSession(sessionId) as unknown as ApiResponse<TeachingSession>
 }
 
 export async function endSession(sessionId: string) {
-  return apiRequest<TeachingSession>(`/api/v1/sessions/${sessionId}/end`, {
-    method: 'PATCH',
-  })
+  return localDb.endSession(sessionId) as unknown as ApiResponse<TeachingSession>
 }
 
 export async function getSessionHistory() {
-  return apiRequest<TeachingSession[]>('/api/v1/sessions/history')
+  return localDb.getSessionHistory() as unknown as ApiResponse<TeachingSession[]>
 }
 
 export async function teach(course_id: string, student_input?: string) {
-  return apiRequest<{ action: string; content: unknown }>('/api/v1/teacher/teach', {
-    method: 'POST',
-    body: JSON.stringify({ course_id, student_input }),
-  })
+  return localDb.teach(course_id, student_input) as unknown as ApiResponse<{ action: string; content: unknown }>
 }
 
 export async function respondToExercise(data: { exercise_id: string; response: string }) {
-  return apiRequest<Attempt>(`/api/v1/sessions/${data.exercise_id}/respond`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return localDb.recordAttempt(data.exercise_id, { response: data.response }) as unknown as ApiResponse<Attempt>
 }

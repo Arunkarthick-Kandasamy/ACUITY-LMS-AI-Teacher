@@ -1,4 +1,3 @@
-import { getAccessToken, clearTokens } from '@/services/api'
 import * as authService from '@/services/auth'
 import type { User, UserRole } from '@/services/types'
 
@@ -25,7 +24,7 @@ const authStore = {
   get user() { return currentUser },
 
   get isAuthenticated() {
-    return !!(currentUser && getAccessToken())
+    return !!currentUser
   },
 
   async login(email: string, password: string, role: UserRole) {

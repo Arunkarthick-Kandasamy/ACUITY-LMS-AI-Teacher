@@ -1,32 +1,22 @@
-import { apiRequest } from './api'
-import type { Attempt, CurriculumTree, LessonProgress } from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, Attempt, CurriculumTree, LessonProgress } from './types'
 
 export async function getCurriculumTree(courseId: string) {
-  return apiRequest<CurriculumTree>(`/api/v1/courses/${courseId}/curriculum`)
+  return localDb.getCurriculumTree(courseId) as unknown as ApiResponse<CurriculumTree>
 }
 
 export async function getLessonProgress(lessonId: string) {
-  return apiRequest<LessonProgress | null>(`/api/v1/lessons/${lessonId}/progress`)
+  return localDb.getLessonProgress(lessonId) as unknown as ApiResponse<LessonProgress | null>
 }
 
 export async function updateLessonProgress(lessonId: string, data: { status?: string; completion_percentage?: number }) {
-  return apiRequest<LessonProgress>(`/api/v1/lessons/${lessonId}/progress`, {
-    method: 'PATCH',
-    body: JSON.stringify(data),
-  })
+  return localDb.updateLessonProgress(lessonId, data) as unknown as ApiResponse<LessonProgress>
 }
 
 export async function recordAttempt(exerciseId: string, data: { response: string }) {
-  return apiRequest<Attempt>(`/api/v1/exercises/${exerciseId}/attempts`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return localDb.recordAttempt(exerciseId, data) as unknown as ApiResponse<Attempt>
 }
 
-export async function getAttempts(params?: { page?: number; per_page?: number }) {
-  const searchParams = new URLSearchParams()
-  if (params?.page) searchParams.set('page', String(params.page))
-  if (params?.per_page) searchParams.set('per_page', String(params.per_page))
-  const qs = searchParams.toString()
-  return apiRequest<Attempt[]>(`/api/v1/attempts${qs ? `?${qs}` : ''}`)
+export async function getAttempts(_params?: { page?: number; per_page?: number }) {
+  return localDb.getAttempts() as unknown as ApiResponse<Attempt[]>
 }

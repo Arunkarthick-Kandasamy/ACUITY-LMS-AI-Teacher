@@ -24,7 +24,7 @@ const SubscriptionPage = () => {
   const [sub, setSub] = useState<Subscription | null>(null);
 
   useEffect(() => {
-    apiRequest('/payments/plans').then((res: any) => setPlans(res?.data || [])).catch(() => {});
+    apiRequest('/payments/plans').then((res: any) => setPlans(Array.isArray(res?.data) ? res.data : [])).catch(() => {});
     apiRequest('/payments/subscription').then((res: any) => setSub(res?.data || null)).catch(() => {});
   }, []);
 

@@ -39,11 +39,12 @@ import { TeacherStudentsPage } from '@/pages/teacher/TeacherStudentsPage'
 import { TeacherStudentDetail } from '@/pages/teacher/TeacherStudentDetail'
 import { TeacherCoursesPage } from '@/pages/teacher/TeacherCoursesPage'
 import MessagesPage from '@/pages/messages/MessagesPage'
-import ModerationPage from '@/pages/admin/ModerationPage'
-import SchoolsPage from '@/pages/admin/SchoolsPage'
+
 import AchievementsPage from '@/pages/AchievementsPage'
 import SubscriptionPage from '@/pages/SubscriptionPage'
 import OfflinePage from '@/pages/OfflinePage'
+import { SettingsPage } from '@/pages/student/SettingsPage'
+import { LeaderboardPage } from '@/pages/student/LeaderboardPage'
 
 function StudentLayout() {
   return <AppLayout role="student"><Outlet /></AppLayout>
@@ -88,8 +89,9 @@ export const router = createBrowserRouter([
         { path: '/student/progress', element: <ProgressPage /> },
         { path: '/student/profile', element: <ProfilePage /> },
         { path: '/student/parent-access', element: <ParentAccessPage /> },
-        { path: '/student/messages', element: <MessagesPage /> },
         { path: '/student/achievements', element: <AchievementsPage /> },
+        { path: '/student/leaderboard', element: <LeaderboardPage /> },
+        { path: '/student/settings', element: <SettingsPage /> },
       ],
     }],
   },
@@ -103,6 +105,7 @@ export const router = createBrowserRouter([
         { path: '/parent/link', element: <LinkStudentPage /> },
         { path: '/parent/reports', element: <ReportsPage /> },
         { path: '/parent/insights', element: <InsightsPage /> },
+        { path: '/parent/settings', element: <SettingsPage /> },
       ],
     }],
   },
@@ -116,8 +119,7 @@ export const router = createBrowserRouter([
         { path: '/admin/analytics', element: <AnalyticsPage /> },
         { path: '/admin/assessments', element: <AssessmentManagementPage /> },
         { path: '/admin/knowledge-graph', element: <KnowledgeGraphPage /> },
-        { path: '/admin/moderation', element: <ModerationPage /> },
-        { path: '/admin/schools', element: <SchoolsPage /> },
+        { path: '/admin/settings', element: <SettingsPage /> },
       ],
     }],
   },
@@ -133,6 +135,7 @@ export const router = createBrowserRouter([
         { path: '/teacher/upload', element: <ContentUploadPage /> },
         { path: '/teacher/messages', element: <MessagesPage /> },
         { path: '/teacher/subscription', element: <SubscriptionPage /> },
+        { path: '/teacher/settings', element: <SettingsPage /> },
       ],
     }],
   },
@@ -149,8 +152,8 @@ export const router = createBrowserRouter([
         { path: '/course-admin/students', element: <TeacherStudentsPage /> },
         { path: '/course-admin/students/:id', element: <TeacherStudentDetail /> },
         { path: '/course-admin/courses', element: <TeacherCoursesPage /> },
-        { path: '/course-admin/messages', element: <MessagesPage /> },
         { path: '/course-admin/subscription', element: <SubscriptionPage /> },
+        { path: '/course-admin/settings', element: <SettingsPage /> },
       ],
     }],
   },

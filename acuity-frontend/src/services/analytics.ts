@@ -1,23 +1,18 @@
-import { apiRequest } from './api'
-import type {
-  AssessmentAnalytics,
-  CourseAnalytics,
-  DashboardAnalyticsResponse,
-  StudentProgressAnalytics,
-} from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, AssessmentAnalytics, CourseAnalytics, DashboardAnalyticsResponse, StudentProgressAnalytics } from './types'
 
 export async function getAssessmentAnalytics(courseId: string) {
-  return apiRequest<AssessmentAnalytics>(`/api/v1/analytics/assessments/${courseId}`)
+  return localDb.getAssessmentAnalytics(courseId) as unknown as ApiResponse<AssessmentAnalytics>
 }
 
 export async function getStudentProgressAnalytics(studentId: string) {
-  return apiRequest<StudentProgressAnalytics>(`/api/v1/analytics/students/${studentId}`)
+  return localDb.getStudentProgressAnalytics(studentId) as unknown as ApiResponse<StudentProgressAnalytics>
 }
 
 export async function getCourseAnalytics(courseId: string) {
-  return apiRequest<CourseAnalytics>(`/api/v1/analytics/courses/${courseId}`)
+  return localDb.getCourseAnalytics(courseId) as unknown as ApiResponse<CourseAnalytics>
 }
 
 export async function getSystemOverview() {
-  return apiRequest<DashboardAnalyticsResponse>('/api/v1/analytics/overview')
+  return localDb.getSystemOverview() as unknown as ApiResponse<DashboardAnalyticsResponse>
 }

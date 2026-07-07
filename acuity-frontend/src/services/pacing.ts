@@ -1,20 +1,14 @@
-import { apiRequest } from './api'
-import type { PacingStatus } from './types'
+import { localDb } from './localDb'
+import type { ApiResponse, PacingStatus } from './types'
 
 export async function getPacingStatus() {
-  return apiRequest<PacingStatus[]>('/api/v1/pacing')
+  return localDb.getPacingStatus() as unknown as ApiResponse<PacingStatus[]>
 }
 
-export async function generateSchedule(enrollment_id: string) {
-  return apiRequest<PacingStatus>('/api/v1/pacing/generate', {
-    method: 'POST',
-    body: JSON.stringify({ enrollment_id }),
-  })
+export async function generateSchedule(_enrollment_id: string) {
+  return localDb.generateSchedule() as unknown as ApiResponse<PacingStatus>
 }
 
 export async function updatePacing(enrollment_id: string, pace_status: string) {
-  return apiRequest<PacingStatus>('/api/v1/pacing', {
-    method: 'PATCH',
-    body: JSON.stringify({ enrollment_id, pace_status }),
-  })
+  return localDb.updatePacing(enrollment_id, pace_status) as unknown as ApiResponse<PacingStatus>
 }

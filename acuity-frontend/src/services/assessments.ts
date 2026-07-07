@@ -1,101 +1,72 @@
-import { apiRequest } from './api'
+import { localDb } from './localDb'
 import type {
-  Assessment,
-  AssessmentAttemptHistory,
-  AssessmentAttemptStart,
-  AssessmentResultResponse,
-  AssessmentSubmitResponse,
+  ApiResponse, Assessment, AssessmentAttemptHistory, AssessmentAttemptStart,
+  AssessmentResultResponse, AssessmentSubmitResponse,
 } from './types'
 
 export async function getAssessments(courseId?: string) {
-  const qs = courseId ? `?course_id=${courseId}` : ''
-  return apiRequest<Assessment[]>(`/api/v1/assessments${qs}`)
+  return localDb.getAssessments(courseId) as unknown as ApiResponse<Assessment[]>
 }
 
 export async function getAvailableAssessments() {
-  return apiRequest<Assessment[]>('/api/v1/assessments/available')
+  return localDb.getAssessments() as unknown as ApiResponse<Assessment[]>
 }
 
 export async function getAssessmentDetail(id: string) {
-  return apiRequest<Assessment>(`/api/v1/assessments/${id}`)
+  const data = await localDb.getAssessments()
+  const assessment = data.data.find(a => a.id === id)
+  return { status: 'success' as const, data: assessment || data.data[0] }
 }
 
 export async function startAssessment(id: string) {
-  return apiRequest<AssessmentAttemptStart>(`/api/v1/assessments/${id}/start`, {
-    method: 'POST',
-  })
+  return localDb.startAssessment(id) as unknown as ApiResponse<AssessmentAttemptStart>
 }
 
-export async function submitAttempt(
-  attemptId: string,
-  responses: { question_id: string; response: string; time_taken_seconds?: number }[],
-) {
-  return apiRequest<AssessmentSubmitResponse>(`/api/v1/attempts/${attemptId}/submit`, {
-    method: 'POST',
-    body: JSON.stringify({ responses }),
-  })
+export async function submitAttempt(attemptId: string, responses: { question_id: string; response: string; time_taken_seconds?: number }[]) {
+  return localDb.submitAttempt(attemptId, responses) as unknown as ApiResponse<AssessmentSubmitResponse>
 }
 
 export async function getAttemptResult(attemptId: string) {
-  return apiRequest<AssessmentResultResponse>(`/api/v1/attempts/${attemptId}/result`)
+  return localDb.getAttemptResult(attemptId) as unknown as ApiResponse<AssessmentResultResponse>
 }
 
-export async function getAssessmentHistory(params?: { page?: number; per_page?: number }) {
-  const searchParams = new URLSearchParams()
-  if (params?.page) searchParams.set('page', String(params.page))
-  if (params?.per_page) searchParams.set('per_page', String(params.per_page))
-  const qs = searchParams.toString()
-  return apiRequest<AssessmentAttemptHistory[]>(`/api/v1/assessments/history${qs ? `?${qs}` : ''}`)
+export async function getAssessmentHistory() {
+  return localDb.getAssessmentHistory() as unknown as ApiResponse<AssessmentAttemptHistory[]>
 }
 
 export async function createAssessment(data: {
-  title: string
-  description?: string
-  course_id: string
-  assessment_type: string
-  passing_score?: number
-  time_limit?: number
-  max_attempts?: number
-  is_published?: boolean
+  title: string; course_id: string; assessment_type: string
+  passing_score?: number; time_limit?: number; max_attempts?: number; is_published?: boolean
 }) {
-  return apiRequest<Assessment>('/api/v1/assessments', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  const assessment: Assessment = {
+    id: `a_${Date.now()}`,
+    title: data.title,
+    course_id: data.course_id,
+    assessment_type: data.assessment_type,
+    passing_score: data.passing_score || 60,
+    max_attempts: data.max_attempts || 3,
+    is_published: data.is_published !== false,
+    question_count: 0,
+    created_at: new Date().toISOString(),
+  }
+  return { status: 'success' as const, data: assessment }
 }
 
 export async function updateAssessment(id: string, data: Partial<Assessment>) {
-  return apiRequest<Assessment>(`/api/v1/assessments/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return { status: 'success' as const, data: { id, ...data } as Assessment }
 }
 
 export async function deleteAssessment(id: string) {
-  return apiRequest<void>(`/api/v1/assessments/${id}`, {
-    method: 'DELETE',
-  })
+  return { status: 'success' as const, data: undefined }
 }
 
 export async function createQuestion(data: {
-  assessment_id: string
-  question_type: string
-  prompt: string
-  options?: Record<string, string>
-  correct_answer: string
-  difficulty?: number
-  marks?: number
-  explanation?: string
-  order_index?: number
+  assessment_id: string; question_type: string; prompt: string
+  options?: Record<string, string>; correct_answer: string; difficulty?: number; marks?: number
 }) {
-  return apiRequest<Assessment>(`/api/v1/assessments/${data.assessment_id}/questions`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return { status: 'success' as const, data: { id: `q_${Date.now()}`, ...data } }
 }
 
-export async function deleteQuestion(questionId: string) {
-  return apiRequest<void>(`/api/v1/questions/${questionId}`, {
-    method: 'DELETE',
-  })
+export async function deleteQuestion(_questionId: string) {
+  return { status: 'success' as const, data: undefined }
 }
