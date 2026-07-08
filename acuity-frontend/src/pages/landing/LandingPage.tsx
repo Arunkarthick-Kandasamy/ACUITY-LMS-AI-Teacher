@@ -74,16 +74,6 @@ const roleStyles: Record<string, { border: string; bg: string; iconBg: string; i
   purple: { border: 'border-purple-100', bg: 'bg-purple-50', iconBg: 'bg-purple-100', icon: 'text-purple-600' },
 }
 
-/* ─── Exam / Goal Data ─── */
-const exams = [
-  { id: 'jee', name: 'JEE', full: 'Joint Entrance Examination', icon: '⚙️', students: '15,200+', color: 'blue', desc: 'IIT-JEE Main & Advanced preparation with adaptive practice.' },
-  { id: 'neet', name: 'NEET', full: 'National Eligibility cum Entrance Test', icon: '🩺', students: '12,800+', color: 'green', desc: 'Comprehensive biology, chemistry, and physics coverage.' },
-  { id: 'cbse', name: 'CBSE', full: 'Central Board of Secondary Education', icon: '📚', students: '18,500+', color: 'purple', desc: 'Class 6-12 curriculum aligned with NCERT standards.' },
-  { id: 'state', name: 'State Boards', full: 'State Board Examinations', icon: '🏛️', students: '9,400+', color: 'orange', desc: 'Maharashtra, Tamil Nadu, Karnataka, UP & more.' },
-  { id: 'olympiad', name: 'Olympiad', full: 'Science & Math Olympiads', icon: '🏆', students: '6,100+', color: 'amber', desc: 'NSO, IMO, NCO, and other competitive exam prep.' },
-  { id: 'upsc', name: 'UPSC', full: 'Union Public Service Commission', icon: '🇮🇳', students: '4,300+', color: 'red', desc: 'Civil services exam preparation with current affairs.' },
-]
-
 const examStyles: Record<string, { border: string; bg: string; text: string; dot: string }> = {
   blue: { border: 'border-blue-100', bg: 'bg-blue-50', text: 'text-blue-600', dot: 'bg-blue-500' },
   green: { border: 'border-green-100', bg: 'bg-green-50', text: 'text-green-600', dot: 'bg-green-500' },
@@ -184,18 +174,18 @@ function AccordionItem({ q, a, open, onToggle }: { q: string; a: string; open: b
 }
 
 /* ─── Feature Tabs ─── */
-type TabId = 'adaptive' | 'tutor' | 'analytics' | 'collab'
+type TabId = 'adaptive' | 'tutor' | 'analytics'
 const featureTabs: { id: TabId; label: string; icon: typeof Zap }[] = [
   { id: 'adaptive', label: 'Adaptive Practice', icon: Zap },
   { id: 'tutor', label: 'AI Tutor Flexi', icon: Bot },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-  { id: 'collab', label: 'Study Groups', icon: MessageSquare },
+
 ]
 const featureContent: Record<TabId, { title: string; desc: string; bullets: string[] }> = {
   adaptive: { title: 'Questions that adapt to every student', desc: 'Our AI analyzes each answer to adjust difficulty in real-time — keeping students challenged but not overwhelmed.', bullets: ['Real-time difficulty adjustment', '50,000+ question library', 'K-12 curriculum aligned', 'Instant feedback & explanations'] },
-  tutor: { title: '24/7 AI tutor in 300+ languages', desc: 'Flexi helps students with homework, explains concepts, and provides step-by-step guidance — whenever they need it.', bullets: ['Available on WhatsApp & web', '300+ languages supported', 'Step-by-step explanations', 'Concept mastery tracking'] },
+  tutor: { title: '24/7 AI tutor', desc: 'Flexi helps students with homework, explains concepts, and provides step-by-step guidance — whenever they need it.', bullets: ['Step-by-step explanations', 'Concept mastery tracking'] },
   analytics: { title: 'Actionable insights for everyone', desc: 'Track progress, identify gaps, and celebrate growth with detailed reports for students, parents, and teachers.', bullets: ['Live progress dashboards', 'Weak area identification', 'Trend analysis & predictions', 'Exportable reports'] },
-  collab: { title: 'Learn together, grow together', desc: 'Form study groups, share resources, and collaborate on problems in real-time with peers.', bullets: ['Live study sessions', 'Resource sharing', 'Group challenges', 'Peer tutoring'] },
+
 }
 
 /* ─── Testimonials Data ─── */
@@ -212,7 +202,6 @@ const testimonials = [
 export function LandingPage() {
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [selectedSubject, setSelectedSubject] = useState(subjectsData[0])
   const [activeTab, setActiveTab] = useState<TabId>('adaptive')
   const [testimonialIdx, setTestimonialIdx] = useState(0)
   const [feed, setFeed] = useState(feedItems.slice(0, 4))
@@ -255,9 +244,9 @@ export function LandingPage() {
             <span className="text-sm font-semibold text-gray-900">Acuity</span>
           </div>
           <div className="hidden md:flex items-center gap-1">
-            {['Dashboard', 'Courses', 'For Schools'].map(item => (
-              <button key={item} className="text-sm text-gray-500 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all font-medium">{item}</button>
-            ))}
+            <button onClick={() => navigate('/login')} className="text-sm text-gray-500 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all font-medium">Dashboard</button>
+            <button onClick={() => navigate('/login')} className="text-sm text-gray-500 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all font-medium">Courses</button>
+            <button onClick={() => navigate('/login?register=true')} className="text-sm text-gray-500 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all font-medium">For Schools</button>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate('/login')} className="text-sm text-gray-600 hover:text-gray-900 font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-all hidden sm:inline">Sign In</button>
@@ -271,9 +260,9 @@ export function LandingPage() {
         </div>
         {mobileOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-2 space-y-1">
-            {['Dashboard', 'Courses', 'For Schools'].map(item => (
-              <button key={item} className="block w-full text-left text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">{item}</button>
-            ))}
+            <button onClick={() => navigate('/login')} className="block w-full text-left text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">Dashboard</button>
+            <button onClick={() => navigate('/login')} className="block w-full text-left text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">Courses</button>
+            <button onClick={() => navigate('/login?register=true')} className="block w-full text-left text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">For Schools</button>
             <button onClick={() => navigate('/login')} className="block w-full text-left text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">Sign In</button>
           </div>
         )}
@@ -291,24 +280,33 @@ export function LandingPage() {
                 <span className="text-xs font-medium text-blue-600">Live Dashboard — {new Date().toLocaleDateString()}</span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-3">
-                Your Learning<br />
-                <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">Command Center</span>
+                Acuity Learning Hub<br />
+                <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">— Where Accuracy meets Knowledge</span>
               </h1>
               <p className="text-base sm:text-lg text-gray-400 leading-relaxed max-w-lg mb-6">
-                One dashboard to track progress, discover lessons, and master subjects — powered by AI that adapts to you.
+                Building the next generation of AI-powered personalized learning that adapts to every student's pace, strengths, and learning style—while empowering educators, not replacing them.
               </p>
-              <div className="flex items-center gap-3 flex-wrap mb-8">
+              <div className="flex items-center gap-3 flex-wrap mb-6">
                 <button onClick={() => navigate('/login?register=true')} className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all shadow-sm font-medium text-sm">
-                  Start Learning Free <ArrowRight className="h-4 w-4" />
+                  Start Learning <ArrowRight className="h-4 w-4" />
                 </button>
                 <button onClick={() => navigate('/courses')} className="inline-flex items-center gap-2 px-6 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium text-sm">
                   <Play className="h-4 w-4" /> Watch Demo
                 </button>
               </div>
-              <div className="flex items-center gap-4 sm:gap-6 text-xs text-gray-400">
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Free forever</span>
-                <span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-blue-500" /> 300+ languages</span>
-                <span className="flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5 text-amber-500" /> K-12 aligned</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100">
+                  <span className="text-lg">🎯</span>
+                  <span className="text-sm font-medium text-gray-800">Personalized Learning</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-purple-50 border border-purple-100">
+                  <span className="text-lg">🤖</span>
+                  <span className="text-sm font-medium text-gray-800">AI-Assisted Education</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-green-50 border border-green-100">
+                  <span className="text-lg">🏫</span>
+                  <span className="text-sm font-medium text-gray-800">Built for Students & Educators</span>
+                </div>
               </div>
             </div>
 
@@ -390,97 +388,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ Exam / Goal Selector (Unacademy pattern) ═══ */}
-      <section className="py-16 sm:py-20 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">What Are You Preparing For?</h2>
-            <p className="text-sm text-gray-400 mt-2">Choose your goal and get a personalized learning path.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {exams.map(exam => {
-              const s = examStyles[exam.color]
-              return (
-                <button key={exam.id} onClick={() => navigate('/login?register=true')}
-                  className={cn('group relative rounded-xl border p-5 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 bg-white', s.border)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg text-base', s.bg)}>{exam.icon}</div>
-                    <span className={cn('flex items-center gap-1 text-[10px] font-medium', s.text)}>
-                      <Users className="h-3 w-3" /> {exam.students}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-0.5">{exam.name}</h3>
-                  <p className="text-[11px] text-gray-400 mb-2">{exam.full}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">{exam.desc}</p>
-                  <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
-                    Explore Path <ChevronRight className="h-3 w-3" />
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* ═══ Interactive Subject Explorer ═══ */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Explore Subjects</h2>
-            <p className="text-sm text-gray-400 mt-2">Click on a subject to see detailed progress and stats.</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {subjectsData.map(sub => {
-              const active = selectedSubject.id === sub.id
-              const s = subjectStyles[sub.color]
-              return (
-                <button key={sub.id} onClick={() => setSelectedSubject(sub)}
-                  className={cn('flex items-center gap-3 rounded-xl border p-3.5 transition-all', active ? 'border-gray-300 bg-white shadow-sm' : 'border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200')}
-                >
-                  <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg text-base shrink-0', s.light)}>{sub.icon}</div>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className={cn('text-sm font-semibold truncate', active ? 'text-gray-900' : 'text-gray-600')}>{sub.name}</p>
-                    <p className="text-[10px] text-gray-400">{sub.students.toLocaleString()} students</p>
-                  </div>
-                  <ProgressRing progress={sub.progress} color={sub.colorHex} size={32} stroke={3} />
-                </button>
-              )
-            })}
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-6 transition-all duration-300">
-            <div className="grid sm:grid-cols-2 gap-6 items-center">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg text-lg', subjectStyles[selectedSubject.color].light)}>{selectedSubject.icon}</div>
-                  <div><h3 className="text-lg font-semibold text-gray-900">{selectedSubject.name}</h3><p className="text-xs text-gray-400">{selectedSubject.desc}</p></div>
-                </div>
-                <div className="space-y-3 mt-4">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Progress</span><span className={cn('font-semibold', subjectStyles[selectedSubject.color].text)}>{selectedSubject.progress}%</span></div>
-                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={cn('h-full rounded-full transition-all duration-1000', subjectStyles[selectedSubject.color].bar)} style={{ width: `${selectedSubject.progress}%` }} /></div>
-                  <div className="grid grid-cols-3 gap-3 mt-4">
-                    {[{ label: 'Lessons', value: `${selectedSubject.lessons}/${selectedSubject.total}` }, { label: 'Students', value: selectedSubject.students.toLocaleString() }, { label: 'Completion', value: `${selectedSubject.progress}%` }].map(d => (
-                      <div key={d.label} className="rounded-lg bg-gray-50 px-3 py-2.5 text-center"><p className="text-xs text-gray-400">{d.label}</p><p className="text-sm font-bold text-gray-900">{d.value}</p></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Recommended for you</p>
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer">
-                      <Play className={cn('h-4 w-4', subjectStyles[selectedSubject.color].text)} />
-                      <div className="flex-1"><p className="text-sm font-medium text-gray-800">Lesson {i}: Core Concepts</p><p className="text-xs text-gray-400">{10 + i * 5} min</p></div>
-                      <ChevronRight className="h-4 w-4 text-gray-300" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ═══ Live Feed Section ═══ */}
       <section className="py-16 sm:py-20 bg-gray-50/70 border-y border-gray-100">
@@ -597,7 +505,7 @@ export function LandingPage() {
                     {activeTab === 'adaptive' && <Zap className="h-8 w-8" />}
                     {activeTab === 'tutor' && <Bot className="h-8 w-8" />}
                     {activeTab === 'analytics' && <BarChart3 className="h-8 w-8" />}
-                    {activeTab === 'collab' && <Users className="h-8 w-8" />}
+
                   </div>
                   <p className="text-sm font-semibold text-gray-900">{featureContent[activeTab].title}</p>
                   <p className="text-xs text-gray-400 mt-1">Click the tab to explore</p>
@@ -608,65 +516,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ Teacher / Educator Showcase (Unacademy pattern) ═══ */}
-      <section className="py-16 sm:py-20 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Learn from the Best</h2>
-            <p className="text-sm text-gray-400 mt-2">Expert educators with years of experience in their fields.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teachers.map((teacher, i) => {
-              const s = examStyles[teacher.color] || examStyles.blue
-              return (
-                <div key={i} className="group rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={cn('flex h-11 w-11 items-center justify-center rounded-full text-base shrink-0', s.bg)}>{teacher.icon}</div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{teacher.name}</p>
-                      <p className="text-xs text-gray-400">{teacher.subject}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-3 pt-3 border-t border-gray-50">
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {teacher.students} students</span>
-                    <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {teacher.rating}</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {teacher.exp}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Results / Report Cards (Vedantu pattern) ═══ */}
-      <section className="py-16 sm:py-20 bg-gray-50/70 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Success Stories</h2>
-            <p className="text-sm text-gray-400 mt-2">Real results from real students who used Acuity to achieve their goals.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-5">
-            {results.map((r, i) => (
-              <div key={i} className="group rounded-xl border border-gray-200 bg-white p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-full text-base', examStyles[r.color]?.bg || 'bg-blue-50')}>{r.badge}</div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{r.name}</p>
-                      <p className={cn('text-xs font-medium', examStyles[r.color]?.text || 'text-blue-600')}>{r.achievement}</p>
-                    </div>
-                  </div>
-                  <span className={cn('inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full', examStyles[r.color]?.bg || 'bg-blue-50', examStyles[r.color]?.text || 'text-blue-600')}>
-                    <TrendingUp className="h-3 w-3" /> {r.improvement}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 leading-relaxed">&ldquo;{r.quote}&rdquo;</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ═══ Role Cards ═══ */}
       <section className="py-16 sm:py-20">

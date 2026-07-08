@@ -44,7 +44,6 @@ import AchievementsPage from '@/pages/AchievementsPage'
 import SubscriptionPage from '@/pages/SubscriptionPage'
 import OfflinePage from '@/pages/OfflinePage'
 import { SettingsPage } from '@/pages/student/SettingsPage'
-import { LeaderboardPage } from '@/pages/student/LeaderboardPage'
 
 function StudentLayout() {
   return <AppLayout role="student"><Outlet /></AppLayout>
@@ -90,7 +89,6 @@ export const router = createBrowserRouter([
         { path: '/student/profile', element: <ProfilePage /> },
         { path: '/student/parent-access', element: <ParentAccessPage /> },
         { path: '/student/achievements', element: <AchievementsPage /> },
-        { path: '/student/leaderboard', element: <LeaderboardPage /> },
         { path: '/student/settings', element: <SettingsPage /> },
       ],
     }],

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthApi } from '@/hooks/useApi'
 import { getEnrollments } from '@/services/enrollment'
 import { startSession, teach, endSession } from '@/services/sessions'
-import { Send, Sparkles, Loader2, X, Clock, MessageSquare, BookOpen, Brain, Zap, Star } from 'lucide-react'
+import { Send, Sparkles, Loader2, X, Clock, MessageSquare, BookOpen, Brain, Zap, Star, Play, Volume2, Maximize2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useGamification, xpForAction } from '@/hooks/useGamification'
 import { Confetti } from '@/components/ui/Confetti'
@@ -110,7 +110,7 @@ export function AITutorPage() {
   const handleEndSession = async () => { if (sessionId) await doEndSession(sessionId) }
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
+    <div className="h-[calc(100vh-8rem)] flex flex-col">
       <Confetti active={confetti} />
       <LevelUpModal level={level} show={showLevelUp} onClose={() => {}} />
 
@@ -153,62 +153,108 @@ export function AITutorPage() {
         </div>
       )}
 
-      <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
-          {messages.map((msg) => (
-            <div key={msg.id} className={cn('flex items-end gap-2', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-              {msg.role === 'ai' && (
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-sm shrink-0 shadow-sm">
-                  {aiAvatar}
-                </div>
-              )}
-              <div className={cn(
-                'max-w-[80%] rounded-2xl px-4 py-3',
-                msg.role === 'user'
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-md shadow-md'
-                  : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-md'
-              )}>
-                <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
-                <p className={cn('text-[10px] mt-1.5', msg.role === 'user' ? 'text-white/60' : 'text-slate-400')}>{msg.time}</p>
-              </div>
-              {msg.role === 'user' && (
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm shrink-0 shadow-sm">
-                  😊
-                </div>
-              )}
-            </div>
-          ))}
-          {sending && (
-            <div className="flex justify-start items-end gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-sm shrink-0">🤖</div>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+      {/* Two-column layout */}
+      <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+        {/* Left: Video Player */}
+        <div className="bg-gray-900 rounded-2xl overflow-hidden flex flex-col relative">
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 relative">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-white/20 transition-all group">
+                <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center pl-1 group-hover:bg-blue-400 transition-all shadow-lg shadow-blue-500/30">
+                  <Play className="w-8 h-8 text-white fill-white" />
                 </div>
               </div>
             </div>
-          )}
+            <div className="absolute top-4 left-4 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500" />
+              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+            </div>
+            <div className="absolute top-4 right-4 flex items-center gap-2 text-white/60 text-xs">
+              <span className="px-2 py-1 rounded-md bg-white/10 backdrop-blur-sm">Now Playing</span>
+            </div>
+            <div className="absolute bottom-16 left-0 right-0 px-4">
+              <div className="text-center">
+                <p className="text-white/80 text-sm font-medium">Interactive Lesson Video</p>
+                <p className="text-white/40 text-xs mt-1">Chapter 1: Getting Started</p>
+              </div>
+            </div>
+          </div>
+          <div className="h-14 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700/50 px-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Play className="w-4 h-4 text-white/70" />
+              <div className="flex items-center gap-1.5">
+                <div className="w-1 h-1 rounded-full bg-white/40" />
+                <div className="w-8 h-1 rounded-full bg-blue-500" />
+                <div className="w-1 h-1 rounded-full bg-white/40" />
+              </div>
+              <span className="text-xs text-white/50">12:34 / 45:00</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Volume2 className="w-4 h-4 text-white/70" />
+              <Maximize2 className="w-3.5 h-3.5 text-white/70" />
+            </div>
+          </div>
         </div>
 
-        <div className="border-t border-slate-200 p-4">
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask your AI buddy anything... 💭"
-                className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                disabled={sending || !!summary}
-              />
-              <Sparkles className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+        {/* Right: Chatbot (compact) */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((msg) => (
+              <div key={msg.id} className={cn('flex items-end gap-2', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+                {msg.role === 'ai' && (
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xs shrink-0 shadow-sm">
+                    {aiAvatar}
+                  </div>
+                )}
+                <div className={cn(
+                  'max-w-[85%] rounded-2xl px-3 py-2',
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-md shadow-md'
+                    : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-md'
+                )}>
+                  <p className="text-xs leading-relaxed whitespace-pre-line">{msg.content}</p>
+                  <p className={cn('text-[9px] mt-1', msg.role === 'user' ? 'text-white/60' : 'text-slate-400')}>{msg.time}</p>
+                </div>
+                {msg.role === 'user' && (
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs shrink-0 shadow-sm">
+                    😊
+                  </div>
+                )}
+              </div>
+            ))}
+            {sending && (
+              <div className="flex justify-start items-end gap-2">
+                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xs shrink-0">🤖</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-md px-3 py-2">
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-slate-200 p-3">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder="Ask anything... 💭"
+                  className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  disabled={sending || !!summary}
+                />
+                <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-300" />
+              </div>
+              <button onClick={handleSend} disabled={sending || !!summary} className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <Send className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button onClick={handleSend} disabled={sending || !!summary} className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-              <Send className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>

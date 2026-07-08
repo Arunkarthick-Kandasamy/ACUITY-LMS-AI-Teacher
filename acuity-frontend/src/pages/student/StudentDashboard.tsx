@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import {
   Flame, Clock, Play, CheckCircle2, BookOpen, Sparkles,
   ChevronRight, Search, ArrowRight, Star, Zap, Trophy,
+  TrendingUp, Target, Loader2,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getTrackLabel } from '@/lib/utils'
 import { Badge, Avatar, AvatarFallback } from '@/components/ui'
 import {
   student, subjects, recentActivity, recommendedLessons,
   type Subject,
 } from './dashboard/dashboard-data'
 import { useGamification } from '@/hooks/useGamification'
+import { useAuthApi } from '@/hooks/useApi'
+import { getEnrollments } from '@/services/enrollment'
+import { getCourseMastery } from '@/services/mastery'
 
 const subjectStyles: Record<string, { bg: string; text: string; bar: string; light: string }> = {
   blue:    { bg: 'bg-blue-500', text: 'text-blue-600', bar: 'bg-gradient-to-r from-blue-400 to-blue-600', light: 'bg-blue-50' },
@@ -86,6 +90,15 @@ export function StudentDashboard() {
   const navigate = useNavigate()
   const { xp, level, streak, xpProgress } = useGamification()
 
+  const { data: enrollments } = useAuthApi(() => getEnrollments('active'), [])
+  const courseId = enrollments?.[0]?.course_id
+  const { data: masterySummary } = useAuthApi(
+    () => courseId ? getCourseMastery(courseId) : Promise.reject(),
+    [courseId],
+  )
+  const trackInfo = getTrackLabel(masterySummary ? Math.round(masterySummary.average_mastery * 100) : 0)
+  const overallScore = masterySummary ? Math.round(masterySummary.average_mastery * 100) : 0
+
   return (
     <div>
       {/* XP & Level Bar */}
@@ -134,6 +147,32 @@ export function StudentDashboard() {
               <span className="text-blue-500 text-xs hidden sm:inline">this week</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Learning Insights */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-6">
+        <h2 className="font-semibold text-slate-900 mb-4">Learning Insights</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: TrendingUp, label: 'Track', value: trackInfo.label, color: 'text-navy-600 bg-navy-50' },
+            { icon: Target, label: 'Overall Score', value: `${overallScore}/100`, color: 'text-emerald-600 bg-emerald-50' },
+            { icon: Clock, label: 'Concepts', value: `${masterySummary?.total_concepts || 0} total`, color: 'text-amber-600 bg-amber-50' },
+            { icon: Zap, label: 'Mastered', value: `${masterySummary?.mastered_concepts || 0} concepts`, color: 'text-blue-600 bg-blue-50' },
+          ].map((item) => {
+            const Icon = item.icon
+            return (
+              <div key={item.label} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                <div className={`w-9 h-9 rounded-lg ${item.color} flex items-center justify-center`}>
+                  <Icon className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400">{item.label}</div>
+                  <div className="text-sm font-semibold text-slate-800">{item.value}</div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 

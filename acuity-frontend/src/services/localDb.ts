@@ -14,6 +14,7 @@ import type {
 } from './types'
 
 const DB_KEY = 'acuity_local_db'
+const DB_VERSION = 2
 
 interface DbSchema {
   users: User[]
@@ -35,12 +36,16 @@ interface DbSchema {
   misconceptions: Misconception[]
   messages: { id: string; from: string; to: string; content: string; created_at: string }[]
   counter: number
+  version: number
 }
 
 function getDb(): DbSchema {
   try {
     const raw = localStorage.getItem(DB_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed.version === DB_VERSION) return parsed
+    }
   } catch {}
   return initDb()
 }
@@ -179,6 +184,21 @@ function seedAssessmentQuestions(): AssessmentQuestion[] {
     { id: 'q3', question_type: 'true_false', prompt: 'The slope of a horizontal line is 0.', difficulty: 1, marks: 1, order_index: 3 },
     { id: 'q4', question_type: 'multiple_choice', prompt: 'What is the square root of 144?', options: { A: '10', B: '11', C: '12', D: '13' }, difficulty: 1, marks: 1, order_index: 4 },
     { id: 'q5', question_type: 'short_answer', prompt: 'Factor: x² - 9 (enter your answer using ^ for exponents)', difficulty: 3, marks: 2, order_index: 5 },
+    { id: 'q6', question_type: 'multiple_choice', prompt: 'What is the chemical symbol for water?', options: { A: 'H2O', B: 'CO2', C: 'NaCl', D: 'O2' }, difficulty: 1, marks: 1, order_index: 6 },
+    { id: 'q7', question_type: 'multiple_choice', prompt: 'What planet is known as the Red Planet?', options: { A: 'Venus', B: 'Mars', C: 'Jupiter', D: 'Saturn' }, difficulty: 1, marks: 1, order_index: 7 },
+    { id: 'q8', question_type: 'true_false', prompt: 'Photosynthesis occurs only during the night.', difficulty: 1, marks: 1, order_index: 8 },
+    { id: 'q9', question_type: 'multiple_choice', prompt: 'What is the capital of France?', options: { A: 'London', B: 'Berlin', C: 'Paris', D: 'Madrid' }, difficulty: 1, marks: 1, order_index: 9 },
+    { id: 'q10', question_type: 'short_answer', prompt: 'What is the formula for the area of a circle? (use pi for π)', difficulty: 2, marks: 2, order_index: 10 },
+    { id: 'q11', question_type: 'multiple_choice', prompt: 'Which force keeps planets in orbit around the Sun?', options: { A: 'Friction', B: 'Magnetism', C: 'Gravity', D: 'Nuclear' }, difficulty: 2, marks: 1, order_index: 11 },
+    { id: 'q12', question_type: 'true_false', prompt: 'An atom is the smallest unit of matter.', difficulty: 1, marks: 1, order_index: 12 },
+    { id: 'q13', question_type: 'multiple_choice', prompt: 'Who wrote "Romeo and Juliet"?', options: { A: 'Charles Dickens', B: 'William Shakespeare', C: 'Jane Austen', D: 'Mark Twain' }, difficulty: 1, marks: 1, order_index: 13 },
+    { id: 'q14', question_type: 'multiple_choice', prompt: 'What is 15% of 200?', options: { A: '15', B: '30', C: '20', D: '25' }, difficulty: 2, marks: 2, order_index: 14 },
+    { id: 'q15', question_type: 'short_answer', prompt: 'Simplify: (2x + 3) - (x - 2)', difficulty: 2, marks: 2, order_index: 15 },
+    { id: 'q16', question_type: 'multiple_choice', prompt: 'Which of these is a prime number?', options: { A: '15', B: '21', C: '17', D: '27' }, difficulty: 1, marks: 1, order_index: 16 },
+    { id: 'q17', question_type: 'true_false', prompt: 'The Great Wall of China is visible from space.', difficulty: 1, marks: 1, order_index: 17 },
+    { id: 'q18', question_type: 'multiple_choice', prompt: 'What is the speed of light approximately?', options: { A: '300,000 km/s', B: '150,000 km/s', C: '500,000 km/s', D: '100,000 km/s' }, difficulty: 2, marks: 1, order_index: 18 },
+    { id: 'q19', question_type: 'multiple_choice', prompt: 'Which part of the cell contains genetic material?', options: { A: 'Ribosome', B: 'Nucleus', C: 'Mitochondria', D: 'Cytoplasm' }, difficulty: 2, marks: 1, order_index: 19 },
+    { id: 'q20', question_type: 'short_answer', prompt: 'What is the value of 2^10?', difficulty: 2, marks: 1, order_index: 20 },
   ]
 }
 
@@ -292,6 +312,7 @@ function initDb(): DbSchema {
   db.misconceptions = seedMisconceptions()
   db.reports = seedReports()
   db.counter = 100
+  db.version = DB_VERSION
   saveDb(db)
   return db
 }
@@ -632,7 +653,12 @@ export const localDb = {
   async submitAttempt(attemptId: string, responses: { question_id: string; response: string }[]) {
     await delay()
     const db = getDb()
-    const correctAnswers: Record<string, string> = { q1: 'B', q2: 'B', q3: 'true', q4: 'C', q5: '(x-3)(x+3)' }
+    const correctAnswers: Record<string, string> = {
+      q1: 'B', q2: 'B', q3: 'true', q4: 'C', q5: '(x-3)(x+3)',
+      q6: 'A', q7: 'B', q8: 'false', q9: 'C', q10: 'pi*r^2',
+      q11: 'C', q12: 'true', q13: 'B', q14: 'B', q15: 'x+5',
+      q16: 'C', q17: 'false', q18: 'A', q19: 'B', q20: '1024',
+    }
     let total = 0
     let earned = 0
     const details: AssessmentResultDetail[] = responses.map(r => {
@@ -681,18 +707,18 @@ export const localDb = {
       passed: true,
       attempt_number: 1,
       completed_at: new Date().toISOString(),
-      total_marks: 7,
-      earned_marks: 5,
-      responses: db.assessmentQuestions.slice(0, 5).map((q, i) => ({
+      total_marks: 13,
+      earned_marks: 10,
+      responses: db.assessmentQuestions.slice(0, 10).map((q, i) => ({
         question_id: q.id,
         prompt: q.prompt,
         question_type: q.question_type,
         marks: q.marks,
         response: 'Sample answer',
         correct_answer: 'Correct answer',
-        is_correct: i < 4,
-        score: i < 4 ? q.marks : 0,
-        feedback: i < 4 ? 'Correct!' : 'Incorrect.',
+        is_correct: i < 8,
+        score: i < 8 ? q.marks : 0,
+        feedback: i < 8 ? 'Correct!' : 'Incorrect.',
       })),
     })
   },

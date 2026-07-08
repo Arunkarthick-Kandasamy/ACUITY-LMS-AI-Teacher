@@ -20,7 +20,6 @@ const sidebarConfig = {
       { label: 'Assessments', path: '/student/assessments', icon: ClipboardCheck },
       { label: 'My Progress', path: '/student/progress', icon: BarChart3 },
       { label: 'Achievements', path: '/student/achievements', icon: Trophy },
-      { label: 'Leaderboard', path: '/student/leaderboard', icon: Star },
       { label: 'Settings', path: '/student/settings', icon: Settings },
       { label: 'Profile', path: '/student/profile', icon: User },
     ],
