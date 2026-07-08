@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Sparkles, BookOpen, BrainCircuit, Users, Shield, BarChart3, Zap, CheckCircle2, Menu, X, Globe, Trophy, Star, Play, Layers, Target, MessageSquare, ChevronRight, Clock, Flame, GraduationCap, Activity, TrendingUp, RefreshCw, Bot, Award, Medal, Laptop, Smartphone, Download, ChevronDown, HelpCircle, School, Search, ExternalLink, Bookmark, Monitor, Apple, Check } from 'lucide-react'
+import { ArrowRight, Sparkles, BookOpen, BrainCircuit, Users, Shield, BarChart3, Zap, CheckCircle2, Menu, X, Trophy, Star, Play, Flame, GraduationCap, Activity, TrendingUp, RefreshCw, Bot, Smartphone, Download, ChevronDown, School, Apple, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /* ─── Hook: Animated Counter ─── */
@@ -74,33 +74,6 @@ const roleStyles: Record<string, { border: string; bg: string; iconBg: string; i
   purple: { border: 'border-purple-100', bg: 'bg-purple-50', iconBg: 'bg-purple-100', icon: 'text-purple-600' },
 }
 
-const examStyles: Record<string, { border: string; bg: string; text: string; dot: string }> = {
-  blue: { border: 'border-blue-100', bg: 'bg-blue-50', text: 'text-blue-600', dot: 'bg-blue-500' },
-  green: { border: 'border-green-100', bg: 'bg-green-50', text: 'text-green-600', dot: 'bg-green-500' },
-  purple: { border: 'border-purple-100', bg: 'bg-purple-50', text: 'text-purple-600', dot: 'bg-purple-500' },
-  orange: { border: 'border-orange-100', bg: 'bg-orange-50', text: 'text-orange-600', dot: 'bg-orange-500' },
-  amber: { border: 'border-amber-100', bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-500' },
-  red: { border: 'border-red-100', bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
-}
-
-/* ─── Teachers Data ─── */
-const teachers = [
-  { name: 'Dr. Anita Sharma', subject: 'Physics', icon: '👩‍🔬', students: '12,400', rating: 4.9, exp: '14 years', color: 'blue' },
-  { name: 'Prof. Ravi Verma', subject: 'Mathematics', icon: '👨‍🏫', students: '18,200', rating: 4.8, exp: '10 years', color: 'green' },
-  { name: 'Ms. Priya Patel', subject: 'Chemistry', icon: '👩‍🔬', students: '9,800', rating: 4.9, exp: '8 years', color: 'purple' },
-  { name: 'Dr. Sunil Gupta', subject: 'Biology', icon: '👨‍🔬', students: '14,600', rating: 4.7, exp: '12 years', color: 'orange' },
-  { name: 'Ms. Kavita Reddy', subject: 'English Literature', icon: '👩‍🏫', students: '11,300', rating: 4.8, exp: '9 years', color: 'amber' },
-  { name: 'Dr. Amit Kumar', subject: 'History & Civics', icon: '👨‍🎓', students: '7,900', rating: 4.6, exp: '15 years', color: 'red' },
-]
-
-/* ─── Results / Success Stories Data ─── */
-const results = [
-  { name: 'Arjun Mehta', achievement: 'JEE Advanced AIR 42', improvement: '+68%', badge: '🏅', color: 'blue', quote: 'The AI practice tests were a game-changer for my preparation.' },
-  { name: 'Sneha Patel', achievement: 'NEET Rank 156', improvement: '+55%', badge: '🎯', color: 'green', quote: 'Daily adaptive quizzes helped me identify and fix weak areas.' },
-  { name: 'Rahul Kumar', achievement: 'CBSE 12th — 98.4%', improvement: '+42%', color: 'purple', badge: '⭐', quote: 'Concept videos and instant feedback made complex topics easy.' },
-  { name: 'Ananya Singh', achievement: 'KVPY Fellow 2025', improvement: '+71%', badge: '🔬', color: 'orange', quote: 'The mentorship and mock tests built my confidence tremendously.' },
-]
-
 /* ─── Pricing Data ─── */
 const plans = [
   {
@@ -130,34 +103,6 @@ const faqItems = [
   { q: 'Can teachers use Acuity in the classroom?', a: 'Yes! Our School plan gives teachers tools to assign work, track class performance, create custom quizzes, and access detailed analytics for every student.' },
 ]
 
-/* ─── Subject Progress Ring ─── */
-function ProgressRing({ progress, color, size = 44, stroke = 3.5 }: { progress: number; color: string; size?: number; stroke?: number }) {
-  const r = (size - stroke) / 2
-  const c = 2 * Math.PI * r
-  const [offset, setOffset] = useState(c)
-  const circleRef = useRef<SVGCircleElement>(null)
-
-  useEffect(() => {
-    const el = circleRef.current
-    if (!el) return
-    const ob = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => setOffset(c - (progress / 100) * c), 200)
-        ob.disconnect()
-      }
-    }, { threshold: 0.3 })
-    ob.observe(el)
-    return () => ob.disconnect()
-  }, [progress, c])
-
-  return (
-    <svg width={size} height={size} className="-rotate-90 shrink-0">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
-      <circle ref={circleRef} cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-    </svg>
-  )
-}
-
 /* ─── Accordion Item ─── */
 function AccordionItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   return (
@@ -179,13 +124,11 @@ const featureTabs: { id: TabId; label: string; icon: typeof Zap }[] = [
   { id: 'adaptive', label: 'Adaptive Practice', icon: Zap },
   { id: 'tutor', label: 'AI Tutor Flexi', icon: Bot },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-
 ]
 const featureContent: Record<TabId, { title: string; desc: string; bullets: string[] }> = {
   adaptive: { title: 'Questions that adapt to every student', desc: 'Our AI analyzes each answer to adjust difficulty in real-time — keeping students challenged but not overwhelmed.', bullets: ['Real-time difficulty adjustment', '50,000+ question library', 'K-12 curriculum aligned', 'Instant feedback & explanations'] },
   tutor: { title: '24/7 AI tutor', desc: 'Flexi helps students with homework, explains concepts, and provides step-by-step guidance — whenever they need it.', bullets: ['Step-by-step explanations', 'Concept mastery tracking'] },
   analytics: { title: 'Actionable insights for everyone', desc: 'Track progress, identify gaps, and celebrate growth with detailed reports for students, parents, and teachers.', bullets: ['Live progress dashboards', 'Weak area identification', 'Trend analysis & predictions', 'Exportable reports'] },
-
 }
 
 /* ─── Testimonials Data ─── */
@@ -388,8 +331,6 @@ export function LandingPage() {
         </div>
       </section>
 
-
-
       {/* ═══ Live Feed Section ═══ */}
       <section className="py-16 sm:py-20 bg-gray-50/70 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -505,7 +446,6 @@ export function LandingPage() {
                     {activeTab === 'adaptive' && <Zap className="h-8 w-8" />}
                     {activeTab === 'tutor' && <Bot className="h-8 w-8" />}
                     {activeTab === 'analytics' && <BarChart3 className="h-8 w-8" />}
-
                   </div>
                   <p className="text-sm font-semibold text-gray-900">{featureContent[activeTab].title}</p>
                   <p className="text-xs text-gray-400 mt-1">Click the tab to explore</p>
@@ -515,7 +455,6 @@ export function LandingPage() {
           </div>
         </div>
       </section>
-
 
       {/* ═══ Role Cards ═══ */}
       <section className="py-16 sm:py-20">
