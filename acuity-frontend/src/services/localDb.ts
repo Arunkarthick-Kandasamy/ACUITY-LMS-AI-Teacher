@@ -5,7 +5,7 @@ import type {
   AssessmentResultResponse, AssessmentResultDetail, LessonProgress,
   CurriculumTree, CurriculumModule, CurriculumLesson, CurriculumConcept,
   ParentStudent, Report, AdminUser, TeacherStudent, TeacherCourse,
-  CourseDetail, Module, ConceptDetail, ConceptContent,
+  Module, ConceptDetail, ConceptContent,
   ParentDashboardData, TeacherDashboardData, AssessmentAttemptHistory,
   Misconception, SessionItem, AttemptItem, DashboardStats,
   CourseBrief, CourseAnalytics, StudentProgressAnalytics,
@@ -286,7 +286,7 @@ function initDb(): DbSchema {
     examples: [], exercises: [], enrollments: [], masteryRecords: [],
     attempts: [], sessions: [], assessments: [], assessmentQuestions: [],
     lessonProgress: [], parentStudents: [], reports: [], misconceptions: [],
-    messages: [], counter: 0,
+    messages: [], counter: 0, version: DB_VERSION,
   }
   const db = empty
   db.users = seedUsers()
@@ -635,15 +635,15 @@ export const localDb = {
     return success(assessments)
   },
 
-  async startAssessment(id: string) {
+  async startAssessment(assessmentId: string) {
     await delay()
     const db = getDb()
-    const assessment = db.assessments.find(a => a.id === id)
+    const assessment = db.assessments.find(a => a.id === assessmentId)
     if (!assessment) throw new Error('Assessment not found')
     const questions = db.assessmentQuestions.slice(0, assessment.question_count)
     return success({
       attempt_id: id(),
-      assessment_id: id,
+      assessment_id: assessmentId,
       started_at: new Date().toISOString(),
       attempt_number: 1,
       questions,
@@ -1026,7 +1026,7 @@ export const localDb = {
     await delay()
     return success(getDb().modules.map(m => ({
       module_id: m.module_id,
-      course_id,
+      course_id: courseId,
       title: m.title,
       order_index: m.order_index,
       lesson_count: m.lessons.length,

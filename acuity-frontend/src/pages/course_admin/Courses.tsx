@@ -55,7 +55,7 @@ export function Courses() {
       ready: courses.filter(c => c.status === 'ready').length,
       deployed: courses.filter(c => c.status === 'deployed').length,
       archived: courses.filter(c => c.status === 'archived').length,
-      failed: courses.filter(c => c.stages?.some(s => s.status === 'failed')).length,
+      failed: courses.filter(c => c.status === 'failed').length,
     }
   }, [courses])
 

@@ -43,9 +43,7 @@ const authStore = {
   async logout() {
     try {
       await authService.logout()
-    } catch {
-      clearTokens()
-    }
+    } catch {}
     currentUser = null
     localStorage.removeItem(STORAGE_KEY)
     notify()

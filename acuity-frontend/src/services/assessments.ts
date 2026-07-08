@@ -35,7 +35,7 @@ export async function getAssessmentHistory() {
 }
 
 export async function createAssessment(data: {
-  title: string; course_id: string; assessment_type: string
+  title: string; description?: string; course_id: string; assessment_type: string
   passing_score?: number; time_limit?: number; max_attempts?: number; is_published?: boolean
 }) {
   const assessment: Assessment = {

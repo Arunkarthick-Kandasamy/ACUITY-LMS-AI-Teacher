@@ -590,7 +590,7 @@ export interface KnowledgeSourceInfo {
   created_at: string
 }
 
-export interface CourseDetail {
+export interface AdminCourseDetail {
   id: string
   name: string
   description?: string

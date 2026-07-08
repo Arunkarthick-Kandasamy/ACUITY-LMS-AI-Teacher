@@ -32,7 +32,8 @@ export function TeacherStudentDetail() {
 
   const masterySum = mastery as { total_concepts?: number; mastered_concepts?: number; average_mastery?: number; concepts?: { concept_title?: string; mastery_level: number }[] } | null
   const avgScore = masterySum ? Math.round((masterySum.average_mastery || 0) * 100) : 0
-  const completionPct = progress ? (progress as Record<string, unknown>).completion_percentage || 0 : 0
+  const progressData = progress as Record<string, number> | null
+  const completionPct = progressData?.completion_percentage || 0
   const misconceptionsCount = misconceptions?.length || 0
   const incorrectAttempts = attempts?.filter(a => !a.is_correct).length || 0
   const recentSessions = sessions?.length || 0
@@ -134,19 +135,19 @@ export function TeacherStudentDetail() {
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-slate-700">Completed Lessons</span>
-                <span className="text-emerald-600 font-medium">{progress ? (progress as Record<string, unknown>).completed_lessons || 0 : 0}</span>
+                <span className="text-emerald-600 font-medium">{progressData?.completed_lessons || 0}</span>
               </div>
               <div className="progress-bar">
-                <div className="progress-bar-fill bg-emerald-500" style={{ width: `${progress ? (progress as Record<string, unknown>).completion_percentage || 0 : 0}%` }} />
+                <div className="progress-bar-fill bg-emerald-500" style={{ width: `${progressData?.completion_percentage || 0}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-slate-700">In Progress Lessons</span>
-                <span className="text-amber-600 font-medium">{progress ? (progress as Record<string, unknown>).in_progress_lessons || 0 : 0}</span>
+                <span className="text-amber-600 font-medium">{progressData?.in_progress_lessons || 0}</span>
               </div>
               <div className="progress-bar">
-                <div className="progress-bar-fill bg-amber-500" style={{ width: `${progress ? ((progress as Record<string, unknown>).in_progress_lessons as number || 0) * 10 : 0}%` }} />
+                <div className="progress-bar-fill bg-amber-500" style={{ width: `${(progressData?.in_progress_lessons || 0) * 10}%` }} />
               </div>
             </div>
           </div>

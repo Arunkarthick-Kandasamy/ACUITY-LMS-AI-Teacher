@@ -1,5 +1,5 @@
 import { localDb } from './localDb'
-import type { ApiResponse, CourseBrief, CourseDetail, DashboardStats, KnowledgeSourceInfo } from './types'
+import type { ApiResponse, CourseBrief, AdminCourseDetail, DashboardStats, KnowledgeSourceInfo } from './types'
 
 export async function getDashboard() {
   return localDb.getCourseAdminDashboard() as unknown as ApiResponse<DashboardStats>
@@ -10,7 +10,7 @@ export async function listCourses() {
 }
 
 export async function getCourse(courseId: string) {
-  return localDb.getCourseAdminCourse(courseId) as unknown as ApiResponse<CourseDetail>
+  return localDb.getCourseAdminCourse(courseId) as unknown as ApiResponse<AdminCourseDetail>
 }
 
 export async function getStageDetail(_courseId: string, _stageName: string) {
@@ -18,7 +18,7 @@ export async function getStageDetail(_courseId: string, _stageName: string) {
 }
 
 export async function createCourse(name: string, description?: string) {
-  return localDb.createCourseAdminCourse(name, description) as unknown as ApiResponse<CourseDetail>
+  return localDb.createCourseAdminCourse(name, description) as unknown as ApiResponse<AdminCourseDetail>
 }
 
 export async function deleteCourse(courseId: string) {

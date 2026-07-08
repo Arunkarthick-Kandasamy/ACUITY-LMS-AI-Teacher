@@ -13,7 +13,7 @@ import {
   uploadKnowledgeSource, runStage,
   retryStage,
 } from '@/services/courseAdmin'
-import type { CourseDetail, PipelineStageInfo, KnowledgeSourceInfo } from '@/services/types'
+import type { AdminCourseDetail, PipelineStageInfo, KnowledgeSourceInfo } from '@/services/types'
 import { STAGE_LABELS, STAGE_ORDER } from '@/services/types'
 
 const WIZARD_STEPS = [
@@ -123,7 +123,7 @@ function stageStatusIcon(status: string) {
 export function CreateCourse() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
-  const [course, setCourse] = useState<CourseDetail | null>(null)
+  const [course, setCourse] = useState<AdminCourseDetail | null>(null)
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')

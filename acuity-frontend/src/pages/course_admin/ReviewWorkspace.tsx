@@ -7,7 +7,7 @@ import {
   FileText, BookOpen, Users, Sparkles, AlertTriangle, ChevronRight,
   PanelLeft, PanelRight, Eye, Edit3,
 } from 'lucide-react'
-import type { CourseDetail } from '@/services/types'
+import type { AdminCourseDetail } from '@/services/types'
 
 export function ReviewWorkspace() {
   const { id } = useParams<{ id: string }>()

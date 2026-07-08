@@ -3,7 +3,7 @@ import { useAuthApi } from '@/hooks/useApi'
 import { getCourse, deleteCourse, runStage } from '@/services/courseAdmin'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  Bot, Loader2, CheckCircle2, AlertCircle, Clock, Brain,
+  Bot, Loader2, CheckCircle2, XCircle, AlertCircle, Clock, Brain,
   Upload, FileText, BookOpen, Users, Sparkles, Play, ShieldCheck,
   ArrowLeft, Edit3, Trash2, ExternalLink, ChevronRight, AlertTriangle,
   Info, BarChart3, Layers, GitBranch, Settings, Activity,
